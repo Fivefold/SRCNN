@@ -14,3 +14,9 @@ https://learning.oreilly.com/library/view/image-super-resolution-and/97814665579
 
 ##### Implementation of srcnn
 https://medium.com/analytics-vidhya/implement-srcnn-with-pure-c-33dcacfbb333
+##### ***
+
+##### Yujing Song, "Single Image Super-Resolution"
+##### Similar to Dong paper; patch extraction, non-linear mapping, reconstruction easier to understand
+https://digitalcommons.morris.umn.edu/cgi/viewcontent.cgi?article=1067&context=horizons
+##### ***
