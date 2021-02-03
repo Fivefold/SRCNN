@@ -8,7 +8,7 @@ from util import rgb2ycbcr, ycbcr2rgb
 from ctypes import c_uint8, c_uint16, c_int32, POINTER, cdll
 from numpy.ctypeslib import ndpointer
 
-lib = cdll.LoadLibrary("./cpython/cconv.so")
+lib = cdll.LoadLibrary("./cconv.so")
 c_conv = lib.cconv
 
 
