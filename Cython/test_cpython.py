@@ -59,7 +59,7 @@ if __name__ == '__main__':
     image = image.resize((image.width * args.scale, image.height *
                           args.scale), resample=pil_image.BICUBIC)
     image.save(args.image_file.replace(
-        '.', '_bicubic_x{}.'.format(args.scale)))
+        '.bmp', '_bicubic_x{}.bmp'.format(args.scale)))
 
     image = np.array(image).astype(np.float32)
     ycbcr = rgb2ycbcr(image)
@@ -90,4 +90,5 @@ if __name__ == '__main__':
     # convert back to RGB and clip values that are outside of 0-255 range
     output = np.clip(ycbcr2rgb(output), 0.0, 255.0).astype(np.uint8)
     output = pil_image.fromarray(output)
-    output.save(args.image_file.replace('.', '_srcnn_x{}.'.format(args.scale)))
+    output.save(args.image_file.replace(
+        '.bmp', '_srcnn_x{}.bmp'.format(args.scale)))
