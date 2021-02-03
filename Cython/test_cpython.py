@@ -55,35 +55,35 @@ if __name__ == '__main__':
     image = image.resize((image.width * args.scale, image.height *
                           args.scale), resample=pil_image.BICUBIC)
     image.save(args.image_file.replace(
-        '.', '_bicubic_x3.')
+        '.', '_bicubic_x.'))
 
-    image=np.array(image).astype(np.float32)
-    ycbcr=rgb2ycbcr(image)
+    image = np.array(image).astype(np.float32)
+    ycbcr = rgb2ycbcr(image)
 
-    y=ycbcr[..., 0]       # remove colour channels
+    y = ycbcr[..., 0]       # remove colour channels
     y /= 255.               # scaling pixel values from 0-255 to 0-1
-    y=y[np.newaxis, ...]  # add a dimension at the start
+    y = y[np.newaxis, ...]  # add a dimension at the start
 
     # Conversion of luminance to fixed point 6.26
-    y=y.astype("float64")
-    y=np.multiply(y, pow(2, 26)).astype("int32")
+    y = y.astype("float64")
+    y = np.multiply(y, pow(2, 26)).astype("int32")
 
     # --- Convolution layers ---
-    cc0=y.flatten('C')
-    cc1=conv_layer(cc0, conv1_w, conv1_b)
-    cc2=conv_layer(cc1, conv2_w, conv2_b)
-    cc3=conv_layer(cc2, conv3_w, conv3_b)
-    cc3=cc3.reshape(1, image_height, image_width)
+    cc0 = y.flatten('C')
+    cc1 = conv_layer(cc0, conv1_w, conv1_b)
+    cc2 = conv_layer(cc1, conv2_w, conv2_b)
+    cc3 = conv_layer(cc2, conv3_w, conv3_b)
+    cc3 = cc3.reshape(1, image_height, image_width)
 
     # Conversion from fixed point back to float
-    cc3=cc3.astype("float64")
-    cc3=np.divide(cc3, pow(2, 26))
+    cc3 = cc3.astype("float64")
+    cc3 = np.divide(cc3, pow(2, 26))
 
     # scaling pixel values back from 0-1 to 0-255
-    cc3=np.squeeze(cc3) * 255.0
+    cc3 = np.squeeze(cc3) * 255.0
     # transpose: https://arrayjson.com/numpy-transpose/#NumPy_transpose_3d_array
-    output=np.array([cc3, ycbcr[..., 1], ycbcr[..., 2]]).transpose([1, 2, 0])
+    output = np.array([cc3, ycbcr[..., 1], ycbcr[..., 2]]).transpose([1, 2, 0])
     # output wird zu rgb umgewandelt und Werte außerhalb 0-255 werden abgeschnitten.
-    output=np.clip(ycbcr2rgb(output), 0.0, 255.0).astype(np.uint8)
-    output=pil_image.fromarray(output)
+    output = np.clip(ycbcr2rgb(output), 0.0, 255.0).astype(np.uint8)
+    output = pil_image.fromarray(output)
     output.save(args.image_file.replace('.', '_srcnn_x3.'))
