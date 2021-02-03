@@ -11,6 +11,8 @@ from numpy.ctypeslib import ndpointer
 lib = cdll.LoadLibrary("./cconv.so")
 c_conv = lib.cconv
 
+scale = 3
+
 
 def conv_layer(inputs, weights, biases):
     numChannelOut, numChannelIn, kernelSize, _ = weights.shape
@@ -31,6 +33,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--image-file', type=str, required=True)
     args = parser.parse_args()
+
+    args.scale = 3  # global scale. There are only weights for scale x3
 
     # --- load weights & biases ---
     conv1_w = np.load("weights/conv1_w.npz")["arr_0"]
@@ -55,7 +59,7 @@ if __name__ == '__main__':
     image = image.resize((image.width * args.scale, image.height *
                           args.scale), resample=pil_image.BICUBIC)
     image.save(args.image_file.replace(
-        '.', '_bicubic_x.'))
+        '.', '_bicubic_x{}.'.format(args.scale)))
 
     image = np.array(image).astype(np.float32)
     ycbcr = rgb2ycbcr(image)
@@ -83,7 +87,7 @@ if __name__ == '__main__':
     cc3 = np.squeeze(cc3) * 255.0
     # transpose: https://arrayjson.com/numpy-transpose/#NumPy_transpose_3d_array
     output = np.array([cc3, ycbcr[..., 1], ycbcr[..., 2]]).transpose([1, 2, 0])
-    # output wird zu rgb umgewandelt und Werte außerhalb 0-255 werden abgeschnitten.
+    # convert back to RGB and clip values that are outside of 0-255 range
     output = np.clip(ycbcr2rgb(output), 0.0, 255.0).astype(np.uint8)
     output = pil_image.fromarray(output)
-    output.save(args.image_file.replace('.', '_srcnn_x3.'))
+    output.save(args.image_file.replace('.', '_srcnn_x{}.'.format(args.scale)))
