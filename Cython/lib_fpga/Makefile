@@ -1,5 +1,5 @@
 
-cconv.so: accell.h accell.c cconv.c
+%.so: %.c
 	cc -fPIC -shared -o $@ $<
 
 all: cconv.so
