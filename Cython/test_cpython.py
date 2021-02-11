@@ -8,24 +8,55 @@ from util import rgb2ycbcr, ycbcr2rgb
 from ctypes import c_uint8, c_uint16, c_int32, POINTER, cdll
 from numpy.ctypeslib import ndpointer
 
-lib = cdll.LoadLibrary("./cconv.so")
-c_conv = lib.cconv
+from wurlitzer import sys_pipes # redirect C stdio & stderr output to python
+
+lib = cdll.LoadLibrary("./lib_cpu/cconv.so")
+c_conv_cpu = lib.cconv
+
+lib = cdll.LoadLibrary("./lib_fpga/cconv.so")
+c_conv_fpga = lib.cconv
 
 scale = 3
 
-
-def conv_layer(inputs, weights, biases):
+def conv_layer_cpu(inputs, weights, biases):
     numChannelOut, numChannelIn, kernelSize, _ = weights.shape
 
     kernels = weights.flatten('C')
     biases_f = biases.flatten('C')
 
-    c_conv.restype = ndpointer(dtype=c_int32, shape=(
+    c_conv_cpu.restype = ndpointer(dtype=c_int32, shape=(
         (numChannelOut * image_height * image_width),))
 
     c_int32_p = POINTER(c_int32)
-    result = c_conv(inputs.ctypes.data_as(c_int32_p), kernels.ctypes.data_as(c_int32_p), biases_f.ctypes.data_as(c_int32_p), c_uint8(
-        numChannelIn), c_uint8(numChannelOut), c_uint8(kernelSize), c_uint16(image_height), c_uint16(image_width))
+    result = c_conv_cpu(inputs.ctypes.data_as(c_int32_p), 
+        kernels.ctypes.data_as(c_int32_p), 
+        biases_f.ctypes.data_as(c_int32_p), 
+        c_uint8(numChannelIn), 
+        c_uint8(numChannelOut), 
+        c_uint8(kernelSize), 
+        c_uint16(image_height), 
+        c_uint16(image_width))
+    return result
+
+def conv_layer_fpga(inputs, weights, biases):
+    numChannelOut, numChannelIn, kernelSize, _ = weights.shape
+
+    kernels = weights.flatten('C')
+    biases_f = biases.flatten('C')
+
+    c_conv_fpga.restype = ndpointer(dtype=c_int32, shape=(
+        (numChannelOut * image_height * image_width),))
+
+    c_int32_p = POINTER(c_int32)
+    with sys_pipes():
+        result = c_conv_fpga(inputs.ctypes.data_as(c_int32_p), 
+            kernels.ctypes.data_as(c_int32_p), 
+            biases_f.ctypes.data_as(c_int32_p), 
+            c_uint8(numChannelIn), 
+            c_uint8(numChannelOut), 
+            c_uint8(kernelSize), 
+            c_uint16(image_height), 
+            c_uint16(image_width))
     return result
 
 
@@ -74,9 +105,15 @@ if __name__ == '__main__':
 
     # --- Convolution layers ---
     cc0 = y.flatten('C')
-    cc1 = conv_layer(cc0, conv1_w, conv1_b)
-    cc2 = conv_layer(cc1, conv2_w, conv2_b)
-    cc3 = conv_layer(cc2, conv3_w, conv3_b)
+    print("Starting convolution layer 1...", end ="")
+    cc1 = conv_layer_cpu(cc0, conv1_w, conv1_b)
+    print("done")
+    print("Starting convolution layer 1...", end ="")
+    cc2 = conv_layer_cpu(cc1, conv2_w, conv2_b)
+    print("done")
+    print("Starting convolution layer 1...", end ="")
+    cc3 = conv_layer_fpga(cc2, conv3_w, conv3_b)
+    print("done")
     cc3 = cc3.reshape(1, image_height, image_width)
 
     # Conversion from fixed point back to float
