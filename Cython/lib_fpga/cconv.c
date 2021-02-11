@@ -43,7 +43,7 @@ int file_write_kernel;
 int file_read;
 
 
-conv_t* cconv2(conv_t *input, conv_t *kernels, conv_t *biases,
+conv_t* cconv(conv_t *input, conv_t *kernels, conv_t *biases,
     u_int8_t numChannelIn, u_int8_t numChannelOut, u_int8_t kernelSize, u_int16_t height, u_int16_t width) {
 
     //initialize output array
