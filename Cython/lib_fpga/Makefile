@@ -2,7 +2,7 @@
 %.so: %.c
 	cc -fPIC -shared -o $@ $<
 
-all: cconv.so
+all: cconv2.so
 
 clean:
-	rm -f cconv.so
+	rm -f cconv2.so

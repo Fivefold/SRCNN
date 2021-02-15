@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <signal.h>
 
 typedef int32_t fp_t;
 
@@ -42,8 +43,17 @@ int file_write_patch;
 int file_write_kernel;
 int file_read;
 
+void sigintHandler(int sig)
+{
+    close(file_write_patch);
+    close(file_write_kernel);
+    close(file_read);
 
-conv_t* cconv(conv_t *input, conv_t *kernels, conv_t *biases,
+    printf("Ctrl + C catched! Aborting...\n");
+    exit(1);
+}
+
+conv_t* cconv2(conv_t *input, conv_t *kernels, conv_t *biases,
     u_int8_t numChannelIn, u_int8_t numChannelOut, u_int8_t kernelSize, u_int16_t height, u_int16_t width) {
 
     //initialize output array
@@ -53,27 +63,39 @@ conv_t* cconv(conv_t *input, conv_t *kernels, conv_t *biases,
 
     conv_t patch[kSizeSquared];
 
+    signal(SIGINT, sigintHandler);
+
+    //printf("Starting convolution with FPGA support...\n");
     openStreams();
-    printf("Starting convolution with FPGA support...\n");
+    printf("Streams are open.\n");
+    
+    //close(file_write_patch);
+    //close(file_write_kernel);
+    //close(file_read);
+    //return output;
 
     //convolution loops
     for(int k = 0; k < numChannelOut; ++k) {
+        printf("k = %d\n", k);
         for(int n = 0; n < numChannelIn; ++n) {
-
+            //printf("n = %d\n", n);
             //it would be possible to write kernel here if it is stored on PL
             //writeKernel(kernels + k*numChannelIn*kSizeSquared + n*kSizeSquared, kSizeSquared);
 
             for(int i = 0; i < height; ++i) {
+                //printf("i = %d\n", i);
                 for(int j = 0; j < width; ++j) {
-                    
+                    //printf("j = %d\n", j);
 
                     conv_t sum = 0;
 
-                    if(writeKernel(kernels + k*numChannelIn*kSizeSquared + n*kSizeSquared, kSizeSquared)) exit(1);
+                    writeKernel(kernels + k*numChannelIn*kSizeSquared + n*kSizeSquared, kSizeSquared);
 
                     for(int l = 0; l < kernelSize; ++l) {
+                        //printf("l = %d\n", l);
                         for(int m = 0; m < kernelSize; ++m) {
-
+                            //printf("m = %d\n", m);
+                            
                             int y = i - kSizeHalf + l;
                             int x = j - kSizeHalf + m;
 
@@ -95,7 +117,9 @@ conv_t* cconv(conv_t *input, conv_t *kernels, conv_t *biases,
                     }
                     writePatch(patch, kSizeSquared);
                     readPixel(&sum);
+                    //printf("%d\n", sum);
 
+                    //printf("val:%d, ", sum);
                     output[(k*height*width) + (i*width) + j] += sum;
                 }
             }
@@ -114,6 +138,10 @@ conv_t* cconv(conv_t *input, conv_t *kernels, conv_t *biases,
             }
         }
     }
+
+    close(file_write_patch);
+    close(file_write_kernel);
+    close(file_read);
 
     return output;
 } 
