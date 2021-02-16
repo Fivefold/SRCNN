@@ -50,14 +50,6 @@ def conv_layer_fpga(inputs, weights, biases):
 
     c_int32_p = POINTER(c_int32)
     #with sys_pipes():
-    #    result = c_conv_fpga(inputs.ctypes.data_as(c_int32_p), 
-    #        kernels.ctypes.data_as(c_int32_p), 
-    #        biases_f.ctypes.data_as(c_int32_p), 
-    #        c_uint8(numChannelIn), 
-    #        c_uint8(numChannelOut), 
-    #        c_uint8(kernelSize), 
-    #        c_uint16(image_height), 
-    #        c_uint16(image_width))
     result = c_conv_fpga(inputs.ctypes.data_as(c_int32_p),
         kernels.ctypes.data_as(c_int32_p),
         biases_f.ctypes.data_as(c_int32_p),

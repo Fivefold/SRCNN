@@ -76,9 +76,9 @@ conv_t* cconv2(conv_t *input, conv_t *kernels, conv_t *biases,
 
     //convolution loops
     for(int k = 0; k < numChannelOut; ++k) {
-        printf("k = %d\n", k);
+        //printf("k = %d\n", k);
         for(int n = 0; n < numChannelIn; ++n) {
-            //printf("n = %d\n", n);
+            printf("n = %d\n", n);
             //it would be possible to write kernel here if it is stored on PL
             //writeKernel(kernels + k*numChannelIn*kSizeSquared + n*kSizeSquared, kSizeSquared);
 
