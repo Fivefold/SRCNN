@@ -14,7 +14,6 @@ typedef int32_t fp_t;
 #define _FLOAT_TO_FP(x) ((fp_t)(x * (1 << FP_FRACT_BITS)))
 #define _FP_TO_FLOAT(x) ((float)x / (float)(1 << FP_FRACT_BITS))
 
-//#define conv_t float
 #define conv_t fp_t
 
 #define _FP_MUL(a,b) (fp_t) (((int64_t) a * b) >> FP_FRACT_BITS)
@@ -34,76 +33,81 @@ static inline fp_t fp_mul(fp_t a, fp_t b) {
 int openStreams(void);
 int writePatch(int32_t* patch, int length);
 int writeKernel(int32_t* kernel, int length);
-int readPixel(int32_t *pixel);
+int readPixel(int32_t *pixel, int length);
 
 int allwrite(int fo, int *buf, int len);
 int allread(int fi, int *buf, int len);
+
+int writeProcess(conv_t *input, conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChannelOut,
+    u_int8_t kernelSize, u_int16_t height, u_int16_t width);
+int readProcess(conv_t *biases, u_int8_t numChannelIn, u_int8_t numChannelOut,
+    u_int16_t height, u_int16_t width);
 
 int file_write_patch;
 int file_write_kernel;
 int file_read;
 
-void sigintHandler(int sig)
+conv_t *output;
+
+void sigintHandlerWrite(int sig)
 {
     close(file_write_patch);
     close(file_write_kernel);
-    close(file_read);
 
-    printf("Ctrl + C catched! Aborting...\n");
     exit(1);
 }
 
-conv_t* cconv2(conv_t *input, conv_t *kernels, conv_t *biases,
-    u_int8_t numChannelIn, u_int8_t numChannelOut, u_int8_t kernelSize, u_int16_t height, u_int16_t width) {
+void sigintHandlerRead(int sig)
+{
+    close(file_read);
+    free(output);
 
-    //initialize output array
-    conv_t *output = calloc(width * height * numChannelOut, sizeof(conv_t));
+    if(sig == SIGINT)
+    {
+        printf("Ctrl + C catched! Aborting...\n");
+    }
+    exit(1);
+}
+
+int writeProcess(conv_t *input, conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChannelOut,
+    u_int8_t kernelSize, u_int16_t height, u_int16_t width)
+{
     int kSizeHalf = kernelSize/2;
     int kSizeSquared = kernelSize * kernelSize;
-
     conv_t patch[kSizeSquared];
 
-    signal(SIGINT, sigintHandler);
+    signal(SIGINT, sigintHandlerWrite);
+    signal(SIGUSR1, sigintHandlerWrite);
 
-    //printf("Starting convolution with FPGA support...\n");
-    openStreams();
-    printf("Streams are open.\n");
-    
-    //close(file_write_patch);
-    //close(file_write_kernel);
-    //close(file_read);
-    //return output;
+    if(!(file_write_patch = open("/dev/xillybus_write_patch_32", O_WRONLY)))
+    {
+		fprintf(stderr, "\nError in opening /dev/xillybus_write_patch_32\n");
+        kill(-getpgid(0), SIGUSR1);
+	}
+
+    if(!(file_write_kernel = open("/dev/xillybus_write_kernel_32", O_WRONLY)))
+	{
+		fprintf(stderr, "\nError in opening /dev/xillybus_write_kernel_32\n");
+        kill(-getpgid(0), SIGUSR1);
+	}
+    printf("Write streams are open.\n");
 
     //convolution loops
     for(int k = 0; k < numChannelOut; ++k) {
-        //printf("k = %d\n", k);
         for(int n = 0; n < numChannelIn; ++n) {
-            printf("n = %d\n", n);
             //it would be possible to write kernel here if it is stored on PL
             //writeKernel(kernels + k*numChannelIn*kSizeSquared + n*kSizeSquared, kSizeSquared);
 
             for(int i = 0; i < height; ++i) {
-                //printf("i = %d\n", i);
                 for(int j = 0; j < width; ++j) {
-                    //printf("j = %d\n", j);
-
-                    conv_t sum = 0;
 
                     writeKernel(kernels + k*numChannelIn*kSizeSquared + n*kSizeSquared, kSizeSquared);
-
+                    
                     for(int l = 0; l < kernelSize; ++l) {
-                        //printf("l = %d\n", l);
                         for(int m = 0; m < kernelSize; ++m) {
-                            //printf("m = %d\n", m);
                             
                             int y = i - kSizeHalf + l;
                             int x = j - kSizeHalf + m;
-
-                            /*
-                            //zero padding check
-                            if((y >= 0) && (x >= 0) && (y < height) && (x < width)) {
-                                sum += input[(n*height*width) + (y*width) + x] * kernels[(k*numChannelIn*kSizeSquared) + (n*kSizeSquared) + (l*kernelSize) + m];
-                            } */
 
                             //padding checks
                             if(y < 0) y = 0;
@@ -112,14 +116,45 @@ conv_t* cconv2(conv_t *input, conv_t *kernels, conv_t *biases,
                             if(x >= width) x = width - 1;
 
                             patch[(l*kernelSize) + m] = input[(n*height*width) + (y*width) + x];
-                            //sum += fp_mul(input[(n*height*width) + (y*width) + x], kernels[(k*numChannelIn*kSizeSquared) + (n*kSizeSquared) + (l*kernelSize) + m]);
                         }
                     }
                     writePatch(patch, kSizeSquared);
-                    readPixel(&sum);
-                    //printf("%d\n", sum);
+                }
+            }
+        }
+    }
 
-                    //printf("val:%d, ", sum);
+    close(file_write_patch);
+    close(file_write_kernel);
+    return 0;
+}
+
+int readProcess(conv_t *biases, u_int8_t numChannelIn, u_int8_t numChannelOut,
+    u_int16_t height, u_int16_t width)
+{
+    signal(SIGINT, sigintHandlerRead);
+    signal(SIGUSR1, sigintHandlerRead);
+
+    if(!(file_read = open("/dev/xillybus_read_32", O_RDONLY)))
+	{
+		fprintf(stderr, "Error in opening /dev/xillybus_read_32\n");
+        kill(-getpgid(0), SIGUSR1);
+	}
+    printf("Read stream is open.\n");
+
+    //convolution loops
+    for(int k = 0; k < numChannelOut; ++k) {
+        //printf("k = %d\n", k);
+        for(int n = 0; n < numChannelIn; ++n) {
+            printf("n = %d\n", n);
+            
+            for(int i = 0; i < height; ++i) {
+                //printf("i = %d\n", i);
+                for(int j = 0; j < width; ++j) {
+                    //printf("j = %d\n", j);
+
+                    conv_t sum;
+                    readPixel(&sum, 1);
                     output[(k*height*width) + (i*width) + j] += sum;
                 }
             }
@@ -139,34 +174,33 @@ conv_t* cconv2(conv_t *input, conv_t *kernels, conv_t *biases,
         }
     }
 
-    close(file_write_patch);
-    close(file_write_kernel);
     close(file_read);
+    return 0;
+}
+
+conv_t* cconv2(conv_t *input, conv_t *kernels, conv_t *biases,
+    u_int8_t numChannelIn, u_int8_t numChannelOut, u_int8_t kernelSize, u_int16_t height, u_int16_t width) {
+
+    //initialize output array
+    output = calloc(width * height * numChannelOut, sizeof(conv_t));
+    
+    switch(fork()) {
+        case -1:
+            fprintf(stderr, "\nError while forking!\n");
+            break;
+        case 0:
+            //child process is writer process
+            writeProcess(input, kernels, numChannelIn, numChannelOut, kernelSize, height, width);
+            exit(EXIT_SUCCESS);
+        default:
+            //parent process is reader process
+            readProcess(biases, numChannelIn, numChannelOut, height, width);
+    }
 
     return output;
 } 
 
-int openStreams(void)
-{
-    if(!(file_write_patch = open("/dev/xillybus_write_patch_32", O_WRONLY)))
-    {
-		fprintf(stderr, "\nError in opening /dev/xillybus_write_patch_32\n");
-		return 1;
-	}
 
-    if(!(file_write_kernel = open("/dev/xillybus_write_kernel_32", O_WRONLY)))
-	{
-		fprintf(stderr, "\nError in opening /dev/xillybus_write_kernel_32\n");
-		return 2;
-	}
- 
-	if(!(file_read = open("/dev/xillybus_read_32", O_RDONLY)))
-	{
-		fprintf(stderr, "Error in opening /dev/xillybus_read_32\n");
-		return 3;
-	}
-    return 0;
-}
 
 int writeKernel(int32_t* kernel, int length)
 {
@@ -178,9 +212,9 @@ int writePatch(int32_t* patch, int length)
     return allwrite(file_write_patch, patch, length*sizeof(int32_t));
 }
 
-int readPixel(int32_t *pixel)
+int readPixel(int32_t *pixel, int length)
 {
-    return allread(file_read, pixel, sizeof(int32_t));
+    return allread(file_read, pixel, length*sizeof(int32_t));
 }
 
 int allwrite(int fo, int *buf, int len)
@@ -195,7 +229,7 @@ int allwrite(int fo, int *buf, int len)
 		if(wc == 0) 
 		{
 			fprintf(stderr, "Reached write EOF (?!)\n");
-			return 1;
+            kill(-getpgid(0), SIGUSR1);
 		}
 		sent += wc;
 	}
@@ -210,18 +244,11 @@ int allread(int fi, int *buf, int len)
 	while(read_data < len)
 	{
 		rc = read(fi, buf + read_data, len - read_data);
-		//fprintf(stderr,"rc: %d, ", rc);
-
-		/*int j;
-		for(j = 0; j < rc; j++)
-		{
-			fprintf(stderr,"b: %08x, ", *((unsigned char*)buf+read_data+j));
-		}*/
 
 		if(rc == 0)
 		{
 			fprintf(stderr, "Reached read EOF (?!)\n");
-			return 1;
+            kill(-getpgid(0), SIGUSR1);
 		}
 		read_data += rc;
 	}

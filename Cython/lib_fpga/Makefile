@@ -1,6 +1,6 @@
 
 %.so: %.c
-	cc -fPIC -shared -o $@ $<
+	cc -Wall -fPIC -shared -o $@ $<
 
 all: cconv2.so
 

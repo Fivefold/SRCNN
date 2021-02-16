@@ -110,7 +110,7 @@ if __name__ == '__main__':
     cc1 = conv_layer_cpu(cc0, conv1_w, conv1_b)
     print("done")
     print("Starting convolution layer 2...")
-    cc2 = conv_layer_cpu(cc1, conv2_w, conv2_b)
+    cc2 = conv_layer_fpga(cc1, conv2_w, conv2_b)
     print("done")
     print("Starting convolution layer 3...")
     cc3 = conv_layer_fpga(cc2, conv3_w, conv3_b)
