@@ -20,3 +20,9 @@ https://medium.com/analytics-vidhya/implement-srcnn-with-pure-c-33dcacfbb333
 ##### Similar to Dong paper; patch extraction, non-linear mapping, reconstruction easier to understand
 https://digitalcommons.morris.umn.edu/cgi/viewcontent.cgi?article=1067&context=horizons
 ##### ***
+
+#### Comparison of two images: SSIM
+#### github:
+https://github.com/ChsHub/SSIM-PIL
+#### Wang Zhou, Image Quality Assessment: From Error Visibility toStructural Similarity
+https://www.cns.nyu.edu/pub/eero/wang03-reprint.pdf
