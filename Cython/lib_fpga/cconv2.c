@@ -38,7 +38,9 @@ int readPixel(int32_t *pixel, int length);
 int allwrite(int fo, int *buf, int len);
 int allread(int fi, int *buf, int len);
 
-int writeProcess(conv_t *input, conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChannelOut,
+int writeKernelProcess(conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChannelOut,
+    u_int8_t kernelSize, u_int16_t height, u_int16_t width);
+int writePatchProcess(conv_t *input, u_int8_t numChannelIn, u_int8_t numChannelOut,
     u_int8_t kernelSize, u_int16_t height, u_int16_t width);
 int readProcess(conv_t *biases, u_int8_t numChannelIn, u_int8_t numChannelOut,
     u_int16_t height, u_int16_t width);
@@ -49,11 +51,15 @@ int file_read;
 
 conv_t *output;
 
-void sigintHandlerWrite(int sig)
+void sigintHandlerWriteKernel(int sig)
+{
+    close(file_write_kernel);
+    exit(1);
+}
+
+void sigintHandlerWritePatch(int sig)
 {
     close(file_write_patch);
-    close(file_write_kernel);
-
     exit(1);
 }
 
@@ -69,28 +75,20 @@ void sigintHandlerRead(int sig)
     exit(1);
 }
 
-int writeProcess(conv_t *input, conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChannelOut,
+int writeKernelProcess(conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChannelOut,
     u_int8_t kernelSize, u_int16_t height, u_int16_t width)
 {
-    int kSizeHalf = kernelSize/2;
     int kSizeSquared = kernelSize * kernelSize;
-    conv_t patch[kSizeSquared];
 
-    signal(SIGINT, sigintHandlerWrite);
-    signal(SIGUSR1, sigintHandlerWrite);
-
-    if(!(file_write_patch = open("/dev/xillybus_write_patch_32", O_WRONLY)))
-    {
-		fprintf(stderr, "\nError in opening /dev/xillybus_write_patch_32\n");
-        kill(-getpgid(0), SIGUSR1);
-	}
+    signal(SIGINT, sigintHandlerWriteKernel);
+    signal(SIGUSR1, sigintHandlerWriteKernel);
 
     if(!(file_write_kernel = open("/dev/xillybus_write_kernel_32", O_WRONLY)))
 	{
 		fprintf(stderr, "\nError in opening /dev/xillybus_write_kernel_32\n");
         kill(-getpgid(0), SIGUSR1);
 	}
-    printf("Write streams are open.\n");
+    printf("Write kernel stream is open.\n");
 
     //convolution loops
     for(int k = 0; k < numChannelOut; ++k) {
@@ -100,8 +98,39 @@ int writeProcess(conv_t *input, conv_t *kernels, u_int8_t numChannelIn, u_int8_t
 
             for(int i = 0; i < height; ++i) {
                 for(int j = 0; j < width; ++j) {
-
                     writeKernel(kernels + k*numChannelIn*kSizeSquared + n*kSizeSquared, kSizeSquared);
+                }
+            }
+        }
+    }
+
+    close(file_write_kernel);
+    return 0;
+}
+
+int writePatchProcess(conv_t *input, u_int8_t numChannelIn, u_int8_t numChannelOut,
+    u_int8_t kernelSize, u_int16_t height, u_int16_t width)
+{
+    int kSizeHalf = kernelSize/2;
+    int kSizeSquared = kernelSize * kernelSize;
+    conv_t patch[kSizeSquared];
+
+    signal(SIGINT, sigintHandlerWritePatch);
+    signal(SIGUSR1, sigintHandlerWritePatch);
+
+    if(!(file_write_patch = open("/dev/xillybus_write_patch_32", O_WRONLY)))
+    {
+		fprintf(stderr, "\nError in opening /dev/xillybus_write_patch_32\n");
+        kill(-getpgid(0), SIGUSR1);
+	}
+
+    printf("Write patch stream is open.\n");
+
+    //convolution loops
+    for(int k = 0; k < numChannelOut; ++k) {
+        for(int n = 0; n < numChannelIn; ++n) {
+            for(int i = 0; i < height; ++i) {
+                for(int j = 0; j < width; ++j) {
                     
                     for(int l = 0; l < kernelSize; ++l) {
                         for(int m = 0; m < kernelSize; ++m) {
@@ -125,7 +154,6 @@ int writeProcess(conv_t *input, conv_t *kernels, u_int8_t numChannelIn, u_int8_t
     }
 
     close(file_write_patch);
-    close(file_write_kernel);
     return 0;
 }
 
@@ -187,14 +215,28 @@ conv_t* cconv2(conv_t *input, conv_t *kernels, conv_t *biases,
     switch(fork()) {
         case -1:
             fprintf(stderr, "\nError while forking!\n");
+            kill(-getpgid(0), SIGUSR1);
             break;
         case 0:
-            //child process is writer process
-            writeProcess(input, kernels, numChannelIn, numChannelOut, kernelSize, height, width);
+            //child process is patch writer process
+            writePatchProcess(input, numChannelIn, numChannelOut, kernelSize, height, width);
             exit(EXIT_SUCCESS);
         default:
-            //parent process is reader process
-            readProcess(biases, numChannelIn, numChannelOut, height, width);
+            //parent process
+
+            switch(fork()) {
+                case -1:
+                    fprintf(stderr, "\nError while forking!\n");
+                    kill(-getpgid(0), SIGUSR1);
+                    break;
+                case 0:
+                    //2nd child process is kernel writer process
+                    writeKernelProcess(kernels, numChannelIn, numChannelOut, kernelSize, height, width);
+                    exit(EXIT_SUCCESS);
+                default:
+                    //parent process is reader process
+                    readProcess(biases, numChannelIn, numChannelOut, height, width);
+            } 
     }
 
     return output;

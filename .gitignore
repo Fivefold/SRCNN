@@ -1,0 +1,5 @@
+*.o
+*.so
+*_bicubic_x3.bmp
+*_srcnn_x3.bmp
+**/__pycache__
