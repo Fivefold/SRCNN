@@ -3,14 +3,14 @@ import argparse
 import numpy as np
 import PIL.Image as pil_image
 
-from util import rgb2ycbcr, ycbcr2rgb
+from .util import rgb2ycbcr, ycbcr2rgb
+from .metrics import psnr, ssim
 
 from ctypes import c_uint8, c_uint16, c_int32, POINTER, cdll
 from numpy.ctypeslib import ndpointer
 
 import timeit
 from wurlitzer import sys_pipes  # redirect C stdio & stderr output to python
-from sewar.full_ref import psnr, ssim, msssim  # image metrics
 
 lib_cpu = cdll.LoadLibrary("./lib_cpu/cconv.so")
 c_conv_cpu = lib_cpu.cconv
@@ -148,13 +148,12 @@ if __name__ == '__main__':
 
     # image metrics
     PSNR = psnr(ground_truth_np, output_np, 255)
-    SSIM, SSIM_CS = ssim(ground_truth_np, output_np, MAX=255)
-    MS_SSIM = msssim(ground_truth_np, output_np, MAX=255)
+    SSIM = ssim(pil_image.open(args.image_file), pil_image.open(args.image_file.replace(
+        '.bmp', '_srcnn_x{}.bmp'.format(args.scale))))
 
     print("\n--- Image Metrics ---")
     print("PSNR: %.2f dB" % PSNR)
-    print("SSIM: %.4f CS: %.4f" % (SSIM, SSIM_CS))
-    print("MSSSIM: %.4f" % MS_SSIM.real)
+    print("SSIM: %.4f" % SSIM)
 
     # execution time
     timer_stop = timeit.default_timer()

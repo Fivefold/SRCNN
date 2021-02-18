@@ -34,24 +34,3 @@ def ycbcr2rgb(i):
         return np.array([r, g, b]).transpose([1, 2, 0])
     else:
         raise Exception('Unknown Type', type(i))
-
-
-# def calc_psnr(i1, i2):
-    #    return 10. * torch.log10(1. / torch.mean((i1 - i2) ** 2))
-
-
-# class AverageMeter(object):
-#     def __init__(self):
-#         self.reset()
-
-#     def reset(self):
-#         self.val = 0
-#         self.avg = 0
-#         self.sum = 0
-#         self.count = 0
-
-#     def update(self, val, n=1):
-#         self.val = val
-#         self.sum += val * n
-#         self.count += n
-#         self.avg = self.sum / self.count
