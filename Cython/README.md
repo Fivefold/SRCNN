@@ -9,6 +9,8 @@ It can run on any Linux-based system but is **made primarily for running on Avne
 * Python (tested on Python 3.8 but should work on any version above 3.5)
   * Numpy (tested on 1.19.5)
   * Pillow (tested on 8.1.0)
+  * wurlitzer (tested on 2.0.1)
+  * SSIM-PIL (tested on 1.0.12)
 * A C compiler
 
 ## ZedBoard-specific prerequisites
@@ -17,6 +19,8 @@ It can run on any Linux-based system but is **made primarily for running on Avne
   * pip (tested on 21.0, installed via [get-pip.py](https://github.com/pypa/get-pip))
   * Numpy (tested on 1.19.5)
   * Pillow (tested on 8.1.0)
+  * wurlitzer (tested on 2.0.1)
+  * SSIM-PIL (tested on 1.0.12)
 * python3.8-distutils (for compiling numpy)
 * python3.8-dev (for compiling numpy)
 * libjpeg-dev (for compiling pillow)
@@ -75,7 +79,7 @@ When Xillinux is running you can either connect a display, mouse and keyboard to
    While the pip version might be higher than 21.0 check if the python version at the end says 3.8. If it does, it means pip was correctly linked with the previously installed python.
    
 7. The pre-installed version of pillow is very old. Upgrade it with `pip install --upgrade pillow`. This can take a few minutes because it will need to compile the package.
-8. Check if the version was correctly updated with `pip show pillow`. It should say 8.1.0 or higher. If it say 3.x.x it was not correctly updated.
-9. Install numpy with `pip install numpy`. This will take 20-30 minutes with no immediate shell output, so be patient. You can check if it's still compiling by watching CPU usage on the OLED screen of the ZedBoard.
+8. Check if the version was correctly updated with `pip show pillow`. It should say 8.1.0 or higher. If it says 3.x.x it was not correctly updated.
+9. Install numpy with `pip install numpy wurlitzer SSIM-PIL`. Because pip will have to build these from source this will take up to an hour with no immediate shell output, so be patient. You can check if it's still compiling by watching CPU usage on the OLED screen of the ZedBoard.
 10. Check if numpy is correctly installed with `pip show numpy`. It should say 1.19.5 or higher.
 11. Clone this repository with `git clone https://github.com/Fivefold/SRCNN.git`
