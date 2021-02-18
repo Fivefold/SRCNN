@@ -8,7 +8,9 @@ from util import rgb2ycbcr, ycbcr2rgb
 from ctypes import c_uint8, c_uint16, c_int32, POINTER, cdll
 from numpy.ctypeslib import ndpointer
 
-from wurlitzer import sys_pipes # redirect C stdio & stderr output to python
+import timeit
+from wurlitzer import sys_pipes  # redirect C stdio & stderr output to python
+from sewar.full_ref import psnr, ssim, msssim  # image metrics
 
 lib_cpu = cdll.LoadLibrary("./lib_cpu/cconv.so")
 c_conv_cpu = lib_cpu.cconv
@@ -17,6 +19,7 @@ lib_fpga = cdll.LoadLibrary("./lib_fpga/cconv2.so")
 c_conv_fpga = lib_fpga.cconv2
 
 scale = 3
+
 
 def conv_layer_cpu(inputs, weights, biases):
     numChannelOut, numChannelIn, kernelSize, _ = weights.shape
@@ -29,15 +32,16 @@ def conv_layer_cpu(inputs, weights, biases):
 
     c_int32_p = POINTER(c_int32)
     with sys_pipes():
-        result = c_conv_cpu(inputs.ctypes.data_as(c_int32_p), 
-            kernels.ctypes.data_as(c_int32_p), 
-            biases_f.ctypes.data_as(c_int32_p), 
-            c_uint8(numChannelIn), 
-            c_uint8(numChannelOut), 
-            c_uint8(kernelSize), 
-            c_uint16(image_height), 
-            c_uint16(image_width))
+        result = c_conv_cpu(inputs.ctypes.data_as(c_int32_p),
+                            kernels.ctypes.data_as(c_int32_p),
+                            biases_f.ctypes.data_as(c_int32_p),
+                            c_uint8(numChannelIn),
+                            c_uint8(numChannelOut),
+                            c_uint8(kernelSize),
+                            c_uint16(image_height),
+                            c_uint16(image_width))
     return result
+
 
 def conv_layer_fpga(inputs, weights, biases):
     numChannelOut, numChannelIn, kernelSize, _ = weights.shape
@@ -49,15 +53,15 @@ def conv_layer_fpga(inputs, weights, biases):
         (numChannelOut * image_height * image_width),))
 
     c_int32_p = POINTER(c_int32)
-    #with sys_pipes():
+    # with sys_pipes():
     result = c_conv_fpga(inputs.ctypes.data_as(c_int32_p),
-        kernels.ctypes.data_as(c_int32_p),
-        biases_f.ctypes.data_as(c_int32_p),
-        c_uint8(numChannelIn),
-        c_uint8(numChannelOut),
-        c_uint8(kernelSize),
-        c_uint16(image_height),
-        c_uint16(image_width))
+                         kernels.ctypes.data_as(c_int32_p),
+                         biases_f.ctypes.data_as(c_int32_p),
+                         c_uint8(numChannelIn),
+                         c_uint8(numChannelOut),
+                         c_uint8(kernelSize),
+                         c_uint16(image_height),
+                         c_uint16(image_width))
     return result
 
 
@@ -67,6 +71,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     args.scale = 3  # global scale. There are only weights for scale x3
+
+    timer_start = timeit.default_timer()
 
     # --- load weights & biases ---
     conv1_w = np.load("weights/conv1_w.npz")["arr_0"]
@@ -81,9 +87,10 @@ if __name__ == '__main__':
     # --- image resizing & preparation ---
     image_width = (image.width // args.scale) * args.scale
     image_height = (image.height // args.scale) * args.scale
-    # resize to a multiple of 3
+    # resize to a multiple of 3 to get the ground truth
     image = image.resize((image_width, image_height),
                          resample=pil_image.BICUBIC)
+    ground_truth_np = np.array(image)
     # actual resizing to 1/3
     image = image.resize((image.width // args.scale, image.height //
                           args.scale), resample=pil_image.BICUBIC)
@@ -106,7 +113,7 @@ if __name__ == '__main__':
 
     # --- Convolution layers ---
     cc0 = y.flatten('C')
-    print("Starting convolution layer 1...")
+    print("\nStarting convolution layer 1...")
     cc1 = conv_layer_cpu(cc0, conv1_w, conv1_b)
     print("done")
     print("Starting convolution layer 2...")
@@ -124,9 +131,37 @@ if __name__ == '__main__':
     # scaling pixel values back from 0-1 to 0-255
     cc3 = np.squeeze(cc3) * 255.0
     # transpose: https://arrayjson.com/numpy-transpose/#NumPy_transpose_3d_array
-    output = np.array([cc3, ycbcr[..., 1], ycbcr[..., 2]]).transpose([1, 2, 0])
+    output_np = np.array(
+        [cc3, ycbcr[..., 1], ycbcr[..., 2]]).transpose([1, 2, 0])
     # convert back to RGB and clip values that are outside of 0-255 range
-    output = np.clip(ycbcr2rgb(output), 0.0, 255.0).astype(np.uint8)
-    output = pil_image.fromarray(output)
+    output_np = np.clip(ycbcr2rgb(output_np), 0.0, 255.0).astype(np.uint8)
+    output = pil_image.fromarray(output_np)
     output.save(args.image_file.replace(
         '.bmp', '_srcnn_x{}.bmp'.format(args.scale)))
+
+    print("\nUpscaling finished!")
+    print("Ground truth image saved at \t" + args.image_file)
+    print("Bicubic upscaled image saved at " + args.image_file.replace(
+        '.bmp', '_bicubic_x{}.bmp'.format(args.scale)))
+    print("SRCNN upscaled image saved at \t" + args.image_file.replace(
+        '.bmp', '_srcnn_x{}.bmp'.format(args.scale)))
+
+    # image metrics
+    PSNR = psnr(ground_truth_np, output_np, 255)
+    SSIM, SSIM_CS = ssim(ground_truth_np, output_np, MAX=255)
+    MS_SSIM = msssim(ground_truth_np, output_np, MAX=255)
+
+    print("\n--- Image Metrics ---")
+    print("PSNR: %.2f dB" % PSNR)
+    print("SSIM: %.4f CS: %.4f" % (SSIM, SSIM_CS))
+    print("MSSSIM: %.4f" % MS_SSIM.real)
+
+    # execution time
+    timer_stop = timeit.default_timer()
+    execution_time = timer_stop - timer_start
+    if execution_time > 60:
+        execution_time_minutes = execution_time / 60
+        print("\nExecution time: %.3f minutes (%.0f seconds)" %
+              (execution_time_minutes, execution_time))
+    else:
+        print("\nExecution time: %.3f seconds" % execution_time)
