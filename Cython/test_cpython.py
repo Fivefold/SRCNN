@@ -3,8 +3,8 @@ import argparse
 import numpy as np
 import PIL.Image as pil_image
 
-from .util import rgb2ycbcr, ycbcr2rgb
-from .metrics import psnr, ssim
+from util import rgb2ycbcr, ycbcr2rgb
+from metrics import psnr, ssim
 
 from ctypes import c_uint8, c_uint16, c_int32, POINTER, cdll
 from numpy.ctypeslib import ndpointer
