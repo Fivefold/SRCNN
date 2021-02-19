@@ -90,6 +90,7 @@ if __name__ == '__main__':
     # resize to a multiple of 3 to get the ground truth
     image = image.resize((image_width, image_height),
                          resample=pil_image.BICUBIC)
+    ground_truth_pil = image
     ground_truth_np = np.array(image)
     # actual resizing to 1/3
     image = image.resize((image.width // args.scale, image.height //
@@ -148,8 +149,7 @@ if __name__ == '__main__':
 
     # image metrics
     PSNR = psnr(ground_truth_np, output_np, 255)
-    SSIM = ssim(pil_image.open(args.image_file), pil_image.open(args.image_file.replace(
-        '.bmp', '_srcnn_x{}.bmp'.format(args.scale))))
+    SSIM = ssim(ground_truth_pil, output)
 
     print("\n--- Image Metrics ---")
     print("PSNR: %.2f dB" % PSNR)
