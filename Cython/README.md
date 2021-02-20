@@ -1,8 +1,8 @@
 # Cython implementation
 
-This is an implementation of the *Super Resolution Convolutional Neural Network (SRCNN) by Dong, Chao, et al. "Image super-resolution using deep convolutional networks."* done in Python and C.
+This is an implementation of the *Super Resolution Convolutional Neural Network (SRCNN) by Dong, Chao, et al. "Image super-resolution using deep convolutional networks."* (https://arxiv.org/abs/1501.00092v3) done in Python, C and VHDL.
 
-It can run on any Linux-based system but is **made primarily for running on Avnet's [ZedBoard](http://zedboard.org/product/zedboard)**. 
+The purely CPU-run version can run on any Linux-based system but is **made primarily for running on Avnet's [ZedBoard](http://zedboard.org/product/zedboard)**, utilising it's FPGA. 
 
 ## General prerequisites
 
@@ -16,7 +16,7 @@ It can run on any Linux-based system but is **made primarily for running on Avne
 ## ZedBoard-specific prerequisites
 
 * Python (tested on Python 3.8 installed via the [deadsnakes PPA](https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa))
-  * pip (tested on 21.0, installed via [get-pip.py](https://github.com/pypa/get-pip))
+  * (Optional) pip (tested on 21.0, installed via [get-pip.py](https://github.com/pypa/get-pip))
   * Numpy (tested on 1.19.5)
   * Pillow (tested on 8.1.0)
   * wurlitzer (tested on 2.0.1)
@@ -29,7 +29,7 @@ It can run on any Linux-based system but is **made primarily for running on Avne
 
 1. If you are not there already, change into the repository and the Cython folder with `cd ~/SRCNN/Cython/` 
    
-2. There are a few test images in ~/SRCNN/Images/ like `small.bmp`, `bird.bmp` or `butterfly.bmp`
+2. There are a few test images in ~/SRCNN/Images/ like `bird.bmp` or `butterfly.bmp`
 3. (Optional) to upload your own image you can use the scp command from another PC (if your zedboard is connected to the same local network via Ethernet).
    
    `scp "[Path to image file on host system]" root@[local IP address]:"/root/SRCNN/Images/"`
@@ -40,12 +40,12 @@ It can run on any Linux-based system but is **made primarily for running on Avne
    
    `python3.8 test_cpython.py --image-file "[Path to image file]"`
    
-   e.g. `python3.8 test_cpython.py --image-file "../Images/small.bmp"`
+   e.g. `python3.8 test_cpython.py --image-file "../Images/butterfly.bmp"`
 
-5. In the location of the original image should be two additional images. Example with `small.bmp`:
-   1. `example.bmp`: original image (Ground truth)
-   2. `example_bicubic_x3.bmp`: image with bicubic upscaling
-   3. `example_srcnn_x3.bmp`: image with SRCNN upscaling
+5. In the location of the original image should be three additional images. Example with `butterfly.bmp`:
+   1. `butterfly_GT.bmp`: original image (Ground truth)
+   2. `butterfly_bicubic_x3.bmp`: image with bicubic upscaling
+   3. `butterfly_srcnn_x3.bmp`: image with SRCNN upscaling
 
 6. (Optional) To easily access the file remotely you can use the scp command again like in step 3.
    
