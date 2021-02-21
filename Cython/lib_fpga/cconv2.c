@@ -35,6 +35,7 @@ int writeFeature(int32_t* feature, int length);
 int writeKernel(int32_t* kernel, int length);
 int readPixel(int32_t *pixel, int length);
 
+int writeByte(int fi, unsigned char *buf);
 int allwrite(int fo, int *buf, int len);
 int allread(int fi, int *buf, int len);
 
@@ -46,6 +47,7 @@ int readProcess(conv_t *biases, u_int8_t numChannelIn, u_int8_t numChannelOut,
     u_int16_t height, u_int16_t width);
 
 int file_config;
+int file_cmd;
 int file_write_feature;
 int file_write_kernel;
 int file_read;
@@ -62,6 +64,7 @@ void sigintHandlerWriteKernel(int sig)
 void sigintHandlerWriteFeature(int sig)
 {
     close(file_write_feature);
+    close(file_cmd);
     exit(1);
 }
 
@@ -109,10 +112,18 @@ int writeKernelProcess(conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChann
 int writeFeatureProcess(conv_t *input, u_int8_t numChannelIn, u_int8_t numChannelOut,
     u_int8_t kernelSize, u_int16_t height, u_int16_t width)
 {
+    //unsigned char dummy = 1;
+
     signal(SIGINT, sigintHandlerWriteFeature);
     signal(SIGUSR1, sigintHandlerWriteFeature);
 
     close(file_config);
+
+    if(!(file_cmd = open("/dev/xillybus_command", O_WRONLY)))
+    {
+		fprintf(stderr, "\nError in opening /dev/xillybus_command\n");
+        kill(-getpgid(0), SIGUSR1);
+	}
 
     if(!(file_write_feature = open("/dev/xillybus_write_feature_32", O_WRONLY)))
     {
@@ -124,12 +135,20 @@ int writeFeatureProcess(conv_t *input, u_int8_t numChannelIn, u_int8_t numChanne
 
 
     for(int n = 0; n < numChannelIn; ++n) {
+
+        /*writeFeature(input + n * height * width, height * width);
+
+        for(int k = 1; k < numChannelOut; ++k) {
+            writeByte(file_cmd, &dummy);
+        }*/
+
+
         for(int k = 0; k < numChannelOut; ++k) {
-            //we will optimize this later, PL design should be capable of it
             writeFeature(input + n * height * width, height * width);
         }
     }
 
+    close(file_cmd);
     close(file_write_feature);
     return 0;
 }
@@ -261,6 +280,18 @@ int writeFeature(int32_t* feature, int length)
 int readPixel(int32_t *pixel, int length)
 {
     return allread(file_read, pixel, length*sizeof(int32_t));
+}
+
+int writeByte(int fi, unsigned char *buf)
+{
+    int wc = write(fi, buf, 1);
+
+    if(wc == 0) 
+    {
+        fprintf(stderr, "Reached write EOF (?!)\n");
+        kill(-getpgid(0), SIGUSR1);
+    }
+    return 0;
 }
 
 int allwrite(int fo, int *buf, int len)
