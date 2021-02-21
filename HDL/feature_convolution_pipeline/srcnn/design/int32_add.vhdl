@@ -11,8 +11,6 @@ entity int32_add is
 end entity;
 
 architecture normal of int32_add is
-    --signal X : std_logic_vector(32 downto 0);
 begin
     C_o <= std_logic_vector(signed(A_i) + signed(B_i));
-    --C_o <= X(31 downto 0);
 end architecture;

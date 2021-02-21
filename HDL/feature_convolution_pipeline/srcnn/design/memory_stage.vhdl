@@ -45,12 +45,7 @@ architecture archi of memory_stage is
 
     signal feature_addr : integer range 0 to IMG_WIDTH_MAX * IMG_HEIGHT_MAX - 1;
     signal kernel_addr : integer range 0 to KERNELSIZE_MAX * KERNELSIZE_MAX - 1;
-    --signal feature_addr : unsigned(15 downto 0);
-    --signal kernel_addr : unsigned(15 downto 0);
-
-    --signal image_width : unsigned(31 downto 0);
-    --signal image_height : unsigned(31 downto 0);
-    --signal kernelsize : unsigned(3 downto 0);
+    
     signal image_width : integer range 0 to IMG_WIDTH_MAX;
     signal image_height : integer range 0 to IMG_HEIGHT_MAX;
     signal kernelsize : integer range 0 to KERNELSIZE_MAX;
@@ -202,15 +197,13 @@ begin
                         image_height <= to_integer(unsigned(user_w_config_data));
                     when "00010" =>
                         kernelsize <= to_integer(unsigned(user_w_config_data(3 downto 0)));
-                    when others =>
-                        --featurefill_done <= '1'; 
+                    when others => 
                         skip_feature_retransmission := '1'; -- cancel feature retransmission
-                        --null;
                 end case;
             end if;
 
             -- synchronous feature memory fill logic
-            if feature_wren = '1' and skip_feature_retransmission = '0' then --featurefill_done = '0' and user_w_write_feature_32_wren then
+            if feature_wren = '1' and skip_feature_retransmission = '0' then
 
                 feature_fill_cnt <= feature_fill_cnt + 1;
                 if feature_fill_cnt_x >= image_width - 1 then
@@ -229,7 +222,7 @@ begin
             end if;
 
             -- synchronous kernel memory fill logic
-            if kernel_wren = '1' then --kernelfill_done = '0' and user_w_write_kernel_32_wren then
+            if kernel_wren = '1' then
 
                 kernel_fill_cnt <= kernel_fill_cnt + 1;
                 if kernel_fill_cnt_x >= kernelsize - 1 then
@@ -260,13 +253,13 @@ begin
 
                     if kernel_x <= -kernelsize/2 then
                         kernel_x := 1;
-                        kernel_read_addr <= kernel_ypos_xhalf + 1;--kernel_center + 1;
+                        kernel_read_addr <= kernel_ypos_xhalf + 1;
 
                         feature_x := kernel_x + pixel_x;
                         if feature_x < image_width then
-                            feature_read_addr <= feature_ypos_xhalf + 1;--pixel_cnt + 1;
+                            feature_read_addr <= feature_ypos_xhalf + 1;
                         else
-                            feature_read_addr <= feature_ypos_xhalf;--pixel_cnt;
+                            feature_read_addr <= feature_ypos_xhalf;
                         end if;
                     elsif kernel_x <= 0 then
                         kernel_x := kernel_x - 1;
@@ -300,7 +293,6 @@ begin
                         elsif kernel_y <= 0 then
                             kernel_y := kernel_y - 1;
                             kernel_ypos_xhalf := kernel_ypos_xhalf - kernelsize;
-                            --kernel_read_addr - (kernelsize + kernelsize/2);
 
                             feature_y := kernel_y + pixel_y;
                             if feature_y >= 0 then
@@ -309,7 +301,6 @@ begin
                         elsif kernel_y < kernelsize/2 then
                             kernel_y := kernel_y + 1;
                             kernel_ypos_xhalf := kernel_ypos_xhalf + kernelsize;
-                            --kernel_read_addr + kerne(kernelsize + 1);
 
                             feature_y := kernel_y + pixel_y;
                             if feature_y < image_height then
@@ -416,8 +407,6 @@ begin
             kernel_addr <= kernel_fill_cnt;
         end if;
     end process;
-
-    --reset when pipeline done missing
 
     -- feature wren mux
     process(featurefill_done, user_w_write_feature_32_wren)

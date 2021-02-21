@@ -46,7 +46,6 @@ architecture archi of patch_mult is
     signal summation, summation_reg : std_logic_vector(31 downto 0);
     signal summand_B : std_logic_vector(31 downto 0);
     signal valid_reg : std_logic_vector(1 downto 0); -- multiplier has just 2 pipeline stages
-    --signal summation_cnt : unsigned(6 downto 0); -- up to kernelsizes of 11x11 are supported
     signal summation_cnt_x : integer range 0 to KERNELSIZE_MAX - 1;
     signal summation_cnt_y : integer range 0 to KERNELSIZE_MAX - 1;
     signal en : std_logic;
@@ -75,7 +74,6 @@ begin
 
             if rst = '1' then
                 summation_reg <= (others => '0');
-                --summation_cnt <= (others => '0');
                 summation_cnt_x <= 0;
                 summation_cnt_y <= 0;
                 valid_reg <= (others => '0');
@@ -99,14 +97,6 @@ begin
                             end if;
                         end if;
 
-                        -- if summation_cnt < to_unsigned(KERNELSIZE * KERNELSIZE - 1, 7) then
-                        --     summation_cnt <= summation_cnt + 1;
-                        --     valid_int <= '0';
-                        -- else
-                        --     summation_cnt <= (others => '0');
-                        --     valid_int <= '1';
-                        -- end if;
-
                         summation_reg <= summation;
                     else
                         valid_int <= '0';
@@ -119,14 +109,20 @@ begin
         end if;
     end process;
 
-    process(summation_cnt_x, summation_cnt_y, summation_reg, stall_i)
+    process(summation_cnt_x, summation_cnt_y, summation_reg)
     begin
-        --if summation_cnt = to_unsigned(0, 7) then
         if summation_cnt_x = 0 and summation_cnt_y = 0 then
             summand_B <= (others => '0');
-            en <= not stall_i; --stall only if output would be ready and stall_i is true
         else
             summand_B <= summation_reg;
+        end if;
+    end process;
+
+    process(valid_int, summation_reg, stall_i)
+    begin
+        if valid_int = '1' then
+            en <= not stall_i; --stall only if output would be ready and stall_i is true
+        else
             en <= '1';
         end if;
     end process;

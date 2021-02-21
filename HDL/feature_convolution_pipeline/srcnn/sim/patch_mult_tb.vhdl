@@ -1,19 +1,20 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+library work;
+use work.config_pkg.all;
+
 entity patch_mult_tb is
 end entity;
 
 architecture testbench of patch_mult_tb is
     component patch_mult is
-        generic(
-            KERNELSIZE : natural := 9
-        );
         port(
             clk : in std_logic;
             rst : in std_logic;
+
+            kernelsize : in integer range 0 to KERNELSIZE_MAX;
         
-            --start : in std_logic;
             valid_i : in std_logic;
             valid_o : out std_logic;
             stall_i : in std_logic;
@@ -35,6 +36,7 @@ begin
     port map(
         clk => clk,
         rst => rst,
+        kernelsize => 3,
         valid_i => valid_i,
         valid_o => valid_o,
         stall_i => stall_i,
@@ -90,7 +92,7 @@ begin
         patch_val <= "00000010000000000000000000000000"; --0.5
         kernel_val <= "00000010000000000000000000000000"; --0.5
         stall_i <= '1';
-        wait for CLK_PERIOD*6;
+        wait for CLK_PERIOD*7;
 
         patch_val <= "00000100000000000000000000000000"; --1
         kernel_val <= "00000100000000000000000000000000"; --1
