@@ -1,5 +1,9 @@
 # Super Resolution Convolutional Neural Network (SRCNN)
 
+![Implementation: Torch](https://img.shields.io/pypi/implementation/pytorch?logo=pytorch)
+![Implementation: Numpy](https://img.shields.io/pypi/implementation/numpy?logo=numpy)
+![Implementation: Cython](https://img.shields.io/pypi/implementation/cython?logo=python)
+
 ### SRCNN implementations for Python/Torch, Numpy and Avnet's ZedBoard 
 
 The aim of single image super-resolution (SR) is to recover a high-resolution (HR) image from a single low-resolution (LR) image.
