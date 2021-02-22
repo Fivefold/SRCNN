@@ -1,5 +1,5 @@
 **Warning: Not all Code in the ./HDL/ subdirectory is licensed under MIT. 
-Please refer to the separate LICENSE.md in that folder for details.**
+Please refer to the separate [LICENSE.md](./HDL/LICENSE.md) in that folder for details.**
 
 For all other files and folders the following applies:
 
