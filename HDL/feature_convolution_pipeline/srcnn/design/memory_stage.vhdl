@@ -18,6 +18,12 @@ entity memory_stage is
         user_config_addr :  in std_logic_vector(4 DOWNTO 0);
         user_config_addr_update : in std_logic;
 
+        -- command interface
+        user_w_command_wren : in std_logic;
+        user_w_command_full : out std_logic;
+        user_w_command_data : in std_logic_vector(7 DOWNTO 0);
+        user_w_command_open : in std_logic;
+
         -- feature stream
         user_w_write_feature_32_wren : in std_logic;
         user_w_write_feature_32_full : out std_logic;
@@ -85,27 +91,27 @@ architecture archi of memory_stage is
 begin
 
     -- save data from config interface
-    -- config_proc : process(clk)
-    -- begin
-    --     if reset = '1' then
-    --         image_width <= 1;
-    --         image_height <= 1;
-    --         kernelsize <= 1;
-    --     elsif clk'event and clk = '1' then
-    --         if user_w_config_wren = '1' then
-    --             case user_config_addr is
-    --                 when "00000" =>
-    --                     image_width <= to_integer(unsigned(user_w_config_data));
-    --                 when "00001" =>
-    --                     image_height <= to_integer(unsigned(user_w_config_data));
-    --                 when "00010" =>
-    --                     kernelsize <= to_integer(unsigned(user_w_config_data(3 downto 0)));
-    --                 when others =>
-    --                     null;
-    --             end case;
-    --         end if;
-    --     end if;
-    -- end process;
+    config_proc : process(clk)
+    begin
+        if reset = '1' then
+            image_width <= 1;
+            image_height <= 1;
+            kernelsize <= 3;
+        elsif clk'event and clk = '1' then
+            if user_w_config_wren = '1' then
+                case user_config_addr is
+                    when "00000" =>
+                        image_width <= to_integer(unsigned(user_w_config_data));
+                    when "00001" =>
+                        image_height <= to_integer(unsigned(user_w_config_data));
+                    when "00010" =>
+                        kernelsize <= to_integer(unsigned(user_w_config_data(3 downto 0)));
+                    when others =>
+                        null;
+                end case;
+            end if;
+        end if;
+    end process;
 
     -- inferred feature RAM
     process (clk)
@@ -154,10 +160,6 @@ begin
             kernelfill_done <= '0';
             featurefill_done <= '0';
             skip_feature_retransmission := '0';
-            -- config interface
-            image_width <= 1;
-            image_height <= 1;
-            kernelsize <= 3;
             -- memory write
             feature_fill_cnt_x <= 0;
             feature_fill_cnt_y <= 0;
@@ -188,18 +190,11 @@ begin
                 kernel_bkp <= kernel_data;
             end if;
 
-            -- save data from config interface
-            if user_w_config_wren = '1' then
-                case user_config_addr is
-                    when "00000" =>
-                        image_width <= to_integer(unsigned(user_w_config_data));
-                    when "00001" =>
-                        image_height <= to_integer(unsigned(user_w_config_data));
-                    when "00010" =>
-                        kernelsize <= to_integer(unsigned(user_w_config_data(3 downto 0)));
-                    when others => 
-                        skip_feature_retransmission := '1'; -- cancel feature retransmission
-                end case;
+            -- listen on command interface
+            if user_w_command_wren = '1' then
+                if user_w_command_data = "00000001" then
+                    skip_feature_retransmission := '1'; -- cancel feature retransmission
+                end if;
             end if;
 
             -- synchronous feature memory fill logic
@@ -357,6 +352,10 @@ begin
 
         end if;
 
+        -- necessary signals
+        user_w_command_full <= skip_feature_retransmission;
+
+        -- signals for simulation
         pixel_x_sig <= pixel_x;
         pixel_y_sig <= pixel_y;
         pixel_cnt_sig <= pixel_cnt;

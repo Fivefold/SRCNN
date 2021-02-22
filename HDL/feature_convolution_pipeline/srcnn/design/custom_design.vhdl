@@ -18,6 +18,12 @@ entity custom_design is
         user_config_addr :  in std_logic_vector(4 DOWNTO 0);
         user_config_addr_update : in std_logic;
 
+        -- command interface
+        user_w_command_wren : in std_logic;
+        user_w_command_full : out std_logic;
+        user_w_command_data : in std_logic_vector(7 DOWNTO 0);
+        user_w_command_open : in std_logic;
+
         -- feature stream
         user_w_write_feature_32_wren : in std_logic;
         user_w_write_feature_32_full : out std_logic;
@@ -36,13 +42,6 @@ entity custom_design is
         user_r_read_32_data : out std_logic_vector(31 DOWNTO 0);
         user_r_read_32_eof : out std_logic;
         user_r_read_32_open : in std_logic
-
-        -- ready message interface
-        --user_r_mem_8_rden : in std_logic;
-        --user_r_mem_8_empty : out std_logic;
-        --user_r_mem_8_data : out std_logic_vector(7 DOWNTO 0);
-        --user_r_mem_8_eof : out std_logic;
-        --user_r_mem_8_open : in std_logic
     );
 end entity;
 
@@ -60,6 +59,12 @@ architecture archi of custom_design is
             user_w_config_data : in std_logic_vector(31 DOWNTO 0);
             user_config_addr :  in std_logic_vector(4 DOWNTO 0);
             user_config_addr_update : in std_logic;
+
+            -- command interface
+            user_w_command_wren : in std_logic;
+            user_w_command_full : out std_logic;
+            user_w_command_data : in std_logic_vector(7 DOWNTO 0);
+            user_w_command_open : in std_logic;
     
             -- feature stream
             user_w_write_feature_32_wren : in std_logic;
@@ -134,6 +139,12 @@ begin
             user_w_config_data => user_w_config_data,
             user_config_addr => user_config_addr,
             user_config_addr_update => user_config_addr_update,
+
+            -- command interface
+            user_w_command_wren => user_w_command_wren,
+            user_w_command_full => user_w_command_full,
+            user_w_command_data => user_w_command_data,
+            user_w_command_open => user_w_command_open,
     
             -- feature stream
             user_w_write_feature_32_wren => user_w_write_feature_32_wren,
@@ -190,6 +201,5 @@ begin
 
     -- permanent settings
     user_r_read_32_eof <= '0';
-    --user_r_mem_8_eof <= '0';
 
 end architecture;

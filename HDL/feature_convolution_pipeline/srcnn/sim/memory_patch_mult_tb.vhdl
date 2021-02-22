@@ -5,10 +5,10 @@ use ieee.numeric_std.all;
 library work;
 use work.config_pkg.all;
 
-entity memory_stage_tb is
+entity memory_patch_mult_tb is
 end entity;
 
-architecture testbench of memory_stage_tb is
+architecture testbench of memory_patch_mult_tb is
     constant CLK_PERIOD : time := 10 ns;
 
     component memory_stage is
@@ -46,6 +46,24 @@ architecture testbench of memory_stage_tb is
             data_valid_o : out std_logic;
             kernelsize_o : out integer range 0 to KERNELSIZE_MAX;
             stall_i : in std_logic
+        );
+    end component;
+    
+    component patch_mult is
+        port(
+            clk : in std_logic;
+            rst : in std_logic;
+    
+            kernelsize : in integer range 0 to KERNELSIZE_MAX;
+        
+            valid_i : in std_logic;
+            valid_o : out std_logic;
+            stall_i : in std_logic;
+            en_o : out std_logic;
+    
+            patch_val_i  : in std_logic_vector(31 downto 0);
+            kernel_val_i : in std_logic_vector(31 downto 0);
+            patch_val_o  : out std_logic_vector(31 downto 0)
         );
     end component;
 
@@ -100,9 +118,9 @@ architecture testbench of memory_stage_tb is
     signal user_w_write_kernel_32_data : std_logic_vector(31 DOWNTO 0);
 
     -- interface to next stage
-    signal feature_data_o : std_logic_vector(31 downto 0);
-    signal kernel_data_o : std_logic_vector(31 downto 0);
-    signal data_valid_o : std_logic;
+    signal feature_data : std_logic_vector(31 downto 0);
+    signal kernel_data : std_logic_vector(31 downto 0);
+    --signal data_valid_o : std_logic;
     signal kernelsize_o : integer range 0 to KERNELSIZE_MAX;
     signal stall_i : std_logic;
 
@@ -117,6 +135,13 @@ architecture testbench of memory_stage_tb is
     signal user_w_write_kernel_32_wren_reg : std_logic;
     signal user_w_write_kernel_32_data_reg : std_logic_vector(31 DOWNTO 0);
     signal stall_reg : std_logic;
+
+    signal mem_data_valid : std_logic;
+    signal mult_data_valid : std_logic;
+    signal stall_for_mult : std_logic;
+    signal en_from_mult, en_from_mult_neg : std_logic;
+    
+    signal result : std_logic_vector(31 DOWNTO 0);
     
 --    procedure write_feature(
 --        f : array_feature_t
@@ -180,12 +205,32 @@ begin
             user_w_write_kernel_32_data => user_w_write_kernel_32_data_reg,
     
             -- interface to next stage
-            feature_data_o => feature_data_o,
-            kernel_data_o => kernel_data_o,
-            data_valid_o => data_valid_o,
+            feature_data_o => feature_data,
+            kernel_data_o => kernel_data,
+            data_valid_o => mem_data_valid,
             kernelsize_o => kernelsize_o,
-            stall_i => stall_reg
+            stall_i => en_from_mult_neg
         );
+
+    patch_mult_inst : patch_mult
+        port map(
+            clk => clk,
+            rst => reset,
+    
+            kernelsize => kernelsize_o,
+        
+            valid_i => mem_data_valid,
+            valid_o => mult_data_valid,
+            stall_i => stall_for_mult,
+            en_o => en_from_mult,
+    
+            patch_val_i => feature_data,
+            kernel_val_i => kernel_data,
+            patch_val_o => result
+        );
+
+    en_from_mult_neg <= not en_from_mult;
+    stall_for_mult <= stall_reg;
 
     clk_gen: process
     begin
@@ -281,9 +326,10 @@ begin
         stall_i <= '1';
         wait for CLK_PERIOD * 2;
         stall_i <= '0';
-        wait for CLK_PERIOD * 31; --on user_w_write_kernel_32_full; --until user_w_write_kernel_32_full = '0';
+        --wait for CLK_PERIOD * 31;
+        wait for CLK_PERIOD * 23;
         stall_i <= '1';
-        wait for CLK_PERIOD;
+        wait for CLK_PERIOD*3;
         stall_i <= '0';
         
         

@@ -118,7 +118,7 @@ begin
         end if;
     end process;
 
-    process(valid_int, summation_reg, stall_i)
+    process(valid_int, stall_i)
     begin
         if valid_int = '1' then
             en <= not stall_i; --stall only if output would be ready and stall_i is true

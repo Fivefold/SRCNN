@@ -65,55 +65,21 @@ architecture sample_arch of xillydemo is
       vga4_red : OUT std_logic_vector(3 DOWNTO 0);
       vga_hsync : OUT std_logic;
       vga_vsync : OUT std_logic;
-      user_r_audio_rden : OUT std_logic;
-      user_r_audio_empty : IN std_logic;
-      user_r_audio_data : IN std_logic_vector(31 DOWNTO 0);
-      user_r_audio_eof : IN std_logic;
-      user_r_audio_open : OUT std_logic;
-      user_w_audio_wren : OUT std_logic;
-      user_w_audio_full : IN std_logic;
-      user_w_audio_data : OUT std_logic_vector(31 DOWNTO 0);
-      user_w_audio_open : OUT std_logic;
+      user_w_command_wren : OUT std_logic;
+      user_w_command_full : IN std_logic;
+      user_w_command_data : OUT std_logic_vector(7 DOWNTO 0);
+      user_w_command_open : OUT std_logic;
       user_w_config_wren : OUT std_logic;
       user_w_config_full : IN std_logic;
       user_w_config_data : OUT std_logic_vector(31 DOWNTO 0);
       user_w_config_open : OUT std_logic;
       user_config_addr : OUT std_logic_vector(4 DOWNTO 0);
       user_config_addr_update : OUT std_logic;
-      user_r_mem_8_rden : OUT std_logic;
-      user_r_mem_8_empty : IN std_logic;
-      user_r_mem_8_data : IN std_logic_vector(7 DOWNTO 0);
-      user_r_mem_8_eof : IN std_logic;
-      user_r_mem_8_open : OUT std_logic;
-      user_w_mem_8_wren : OUT std_logic;
-      user_w_mem_8_full : IN std_logic;
-      user_w_mem_8_data : OUT std_logic_vector(7 DOWNTO 0);
-      user_w_mem_8_open : OUT std_logic;
-      user_mem_8_addr : OUT std_logic_vector(4 DOWNTO 0);
-      user_mem_8_addr_update : OUT std_logic;
       user_r_read_32_rden : OUT std_logic;
       user_r_read_32_empty : IN std_logic;
       user_r_read_32_data : IN std_logic_vector(31 DOWNTO 0);
       user_r_read_32_eof : IN std_logic;
       user_r_read_32_open : OUT std_logic;
-      user_r_read_8_rden : OUT std_logic;
-      user_r_read_8_empty : IN std_logic;
-      user_r_read_8_data : IN std_logic_vector(7 DOWNTO 0);
-      user_r_read_8_eof : IN std_logic;
-      user_r_read_8_open : OUT std_logic;
-      user_r_smb_rden : OUT std_logic;
-      user_r_smb_empty : IN std_logic;
-      user_r_smb_data : IN std_logic_vector(7 DOWNTO 0);
-      user_r_smb_eof : IN std_logic;
-      user_r_smb_open : OUT std_logic;
-      user_w_smb_wren : OUT std_logic;
-      user_w_smb_full : IN std_logic;
-      user_w_smb_data : OUT std_logic_vector(7 DOWNTO 0);
-      user_w_smb_open : OUT std_logic;
-      user_w_write_8_wren : OUT std_logic;
-      user_w_write_8_full : IN std_logic;
-      user_w_write_8_data : OUT std_logic_vector(7 DOWNTO 0);
-      user_w_write_8_open : OUT std_logic;
       user_w_write_feature_32_wren : OUT std_logic;
       user_w_write_feature_32_full : IN std_logic;
       user_w_write_feature_32_data : OUT std_logic_vector(31 DOWNTO 0);
@@ -132,69 +98,6 @@ architecture sample_arch of xillydemo is
       user_irq : IN std_logic);
   end component;
 
-  component fifo_8x2048
-    port (
-      clk: IN std_logic;
-      srst: IN std_logic;
-      din: IN std_logic_VECTOR(7 downto 0);
-      wr_en: IN std_logic;
-      rd_en: IN std_logic;
-      dout: OUT std_logic_VECTOR(7 downto 0);
-      full: OUT std_logic;
-      empty: OUT std_logic);
-  end component;
-
-  component fifo_32x512
-    port (
-      clk: IN std_logic;
-      srst: IN std_logic;
-      din: IN std_logic_VECTOR(31 downto 0);
-      wr_en: IN std_logic;
-      rd_en: IN std_logic;
-      dout: OUT std_logic_VECTOR(31 downto 0);
-      full: OUT std_logic;
-      empty: OUT std_logic);
-  end component;
-
-  component i2s_audio
-    port (
-      bus_clk : IN std_logic;
-      clk_100 : IN std_logic;
-      quiesce : IN std_logic;
-      audio_mclk : OUT std_logic;
-      audio_dac : OUT std_logic;
-      audio_adc : IN std_logic;
-      audio_bclk : IN std_logic;
-      audio_lrclk : IN std_logic;
-      user_r_audio_rden : IN std_logic;
-      user_r_audio_empty : OUT std_logic;
-      user_r_audio_data : OUT std_logic_vector(31 DOWNTO 0);
-      user_r_audio_eof : OUT std_logic;
-      user_r_audio_open : IN std_logic;
-      user_w_audio_wren : IN std_logic;
-      user_w_audio_full : OUT std_logic;
-      user_w_audio_data : IN std_logic_vector(31 DOWNTO 0);
-      user_w_audio_open : IN std_logic);
-  end component;
-
-  component smbus
-    port (
-      bus_clk : IN std_logic;
-      quiesce : IN std_logic;
-      smb_sclk : OUT std_logic;
-      smb_sdata : INOUT std_logic;
-      smbus_addr : OUT std_logic_vector(1 DOWNTO 0);
-      user_r_smb_rden : IN std_logic;
-      user_r_smb_empty : OUT std_logic;
-      user_r_smb_data : OUT std_logic_vector(7 DOWNTO 0);
-      user_r_smb_eof : OUT std_logic;
-      user_r_smb_open : IN std_logic;
-      user_w_smb_wren : IN std_logic;
-      user_w_smb_full : OUT std_logic;
-      user_w_smb_data : IN std_logic_vector(7 DOWNTO 0);
-      user_w_smb_open : IN std_logic);
-  end component;
-
   component custom_design is
     port(
         -- global
@@ -207,6 +110,12 @@ architecture sample_arch of xillydemo is
         user_w_config_open : in std_logic;
         user_config_addr :  in std_logic_vector(4 DOWNTO 0);
         user_config_addr_update : in std_logic;
+
+        -- command interface
+        user_w_command_wren : in std_logic;
+        user_w_command_full : out std_logic;
+        user_w_command_data : in std_logic_vector(7 DOWNTO 0);
+        user_w_command_open : in std_logic;
 
         -- feature stream
         user_w_write_feature_32_wren : in std_logic;
@@ -230,67 +139,27 @@ architecture sample_arch of xillydemo is
   end component;
 
 -- Synplicity black box declaration
-  attribute syn_black_box : boolean;
-  attribute syn_black_box of fifo_32x512: component is true;
-  attribute syn_black_box of fifo_8x2048: component is true;
+  --attribute syn_black_box : boolean;
+  --attribute syn_black_box of fifo_32x512: component is true;
+  --attribute syn_black_box of fifo_8x2048: component is true;
 
   type demo_mem is array(0 TO 31) of std_logic_vector(7 DOWNTO 0);
-  signal demoarray : demo_mem;
   signal litearray0 : demo_mem;
   signal litearray1 : demo_mem;
   signal litearray2 : demo_mem;
   signal litearray3 : demo_mem;
-  
-  signal bus_clk :  std_logic;
+  signal lite_addr : integer range 0 to 31;
+
   signal quiesce : std_logic;
 
-  signal reset_8 : std_logic;
-  signal reset_32 : std_logic;
+  -- clock
+  signal bus_clk :  std_logic;
 
-  signal ram_addr : integer range 0 to 31;
-  signal lite_addr : integer range 0 to 31;
-    
-  signal user_w_mem_8_wren :  std_logic;
-  signal user_w_mem_8_full :  std_logic;
-  signal user_w_mem_8_data :  std_logic_vector(7 DOWNTO 0);
-  signal user_w_mem_8_open :  std_logic;
-  signal user_mem_8_addr :  std_logic_vector(4 DOWNTO 0);
-  signal user_mem_8_addr_update :  std_logic;
-  signal user_r_read_8_rden :  std_logic;
-  signal user_r_read_8_empty :  std_logic;
-  signal user_r_read_8_data :  std_logic_vector(7 DOWNTO 0);
-  signal user_r_read_8_eof :  std_logic;
-  signal user_r_read_8_open :  std_logic;
-  signal user_w_write_8_wren :  std_logic;
-  signal user_w_write_8_full :  std_logic;
-  signal user_w_write_8_data :  std_logic_vector(7 DOWNTO 0);
-  signal user_w_write_8_open :  std_logic;
-  signal user_r_audio_rden :  std_logic;
-  signal user_r_audio_empty :  std_logic;
-  signal user_r_audio_data :  std_logic_vector(31 DOWNTO 0);
-  signal user_r_audio_eof :  std_logic;
-  signal user_r_audio_open :  std_logic;
-  signal user_w_audio_wren :  std_logic;
-  signal user_w_audio_full :  std_logic;
-  signal user_w_audio_data :  std_logic_vector(31 DOWNTO 0);
-  signal user_w_audio_open :  std_logic;
-  signal user_r_smb_rden :  std_logic;
-  signal user_r_smb_empty :  std_logic;
-  signal user_r_smb_data :  std_logic_vector(7 DOWNTO 0);
-  signal user_r_smb_eof :  std_logic;
-  signal user_r_smb_open :  std_logic;
-  signal user_w_smb_wren :  std_logic;
-  signal user_w_smb_full :  std_logic;
-  signal user_w_smb_data :  std_logic_vector(7 DOWNTO 0);
-  signal user_w_smb_open :  std_logic;
-  signal user_clk :  std_logic;
-  signal user_wren :  std_logic;
-  signal user_wstrb :  std_logic_vector(3 DOWNTO 0);
-  signal user_rden :  std_logic;
-  signal user_rd_data :  std_logic_vector(31 DOWNTO 0);
-  signal user_wr_data :  std_logic_vector(31 DOWNTO 0);
-  signal user_addr :  std_logic_vector(31 DOWNTO 0);
-  signal user_irq :  std_logic;
+  -- command interface
+  signal user_w_command_wren :  std_logic;
+  signal user_w_command_full :  std_logic;
+  signal user_w_command_data :  std_logic_vector(7 DOWNTO 0);
+  signal user_w_command_open :  std_logic;
 
   -- config interface
   signal user_w_config_wren :  std_logic;
@@ -299,6 +168,13 @@ architecture sample_arch of xillydemo is
   signal user_w_config_open :  std_logic;
   signal user_config_addr :  std_logic_vector(4 DOWNTO 0);
   signal user_config_addr_update :  std_logic;
+
+  -- output stream
+  signal user_r_read_32_rden :  std_logic;
+  signal user_r_read_32_empty :  std_logic;
+  signal user_r_read_32_data :  std_logic_vector(31 DOWNTO 0);
+  signal user_r_read_32_eof :  std_logic;
+  signal user_r_read_32_open :  std_logic;
 
   -- feature stream
   signal user_w_write_feature_32_wren :  std_logic;
@@ -312,19 +188,15 @@ architecture sample_arch of xillydemo is
   signal user_w_write_kernel_32_data :  std_logic_vector(31 DOWNTO 0);
   signal user_w_write_kernel_32_open :  std_logic;
 
-  -- output stream
-  signal user_r_read_32_rden :  std_logic;
-  signal user_r_read_32_empty :  std_logic;
-  signal user_r_read_32_data :  std_logic_vector(31 DOWNTO 0);
-  signal user_r_read_32_eof :  std_logic;
-  signal user_r_read_32_open :  std_logic;
-
-  -- ready message interface
-  signal user_r_mem_8_rden :  std_logic;
-  signal user_r_mem_8_empty :  std_logic;
-  signal user_r_mem_8_data :  std_logic_vector(7 DOWNTO 0);
-  signal user_r_mem_8_eof :  std_logic;
-  signal user_r_mem_8_open :  std_logic;
+  -- xillybus lite
+  signal user_clk :  std_logic;
+  signal user_wren :  std_logic;
+  signal user_rden :  std_logic;
+  signal user_wstrb :  std_logic_vector(3 DOWNTO 0);
+  signal user_addr :  std_logic_vector(31 DOWNTO 0);
+  signal user_rd_data :  std_logic_vector(31 DOWNTO 0);
+  signal user_wr_data :  std_logic_vector(31 DOWNTO 0);
+  signal user_irq :  std_logic;
 
   -- Note that none of the ARM processor's direct connections to pads is
   -- defined as I/O on this module. Normally, they should be connected
@@ -359,18 +231,12 @@ architecture sample_arch of xillydemo is
 begin
   xillybus_ins : xillybus
     port map (
-      -- Ports related to /dev/xillybus_audio
-      -- FPGA to CPU signals:
-      user_r_audio_rden => user_r_audio_rden,
-      user_r_audio_empty => user_r_audio_empty,
-      user_r_audio_data => user_r_audio_data,
-      user_r_audio_eof => user_r_audio_eof,
-      user_r_audio_open => user_r_audio_open,
+      -- Ports related to /dev/xillybus_command
       -- CPU to FPGA signals:
-      user_w_audio_wren => user_w_audio_wren,
-      user_w_audio_full => user_w_audio_full,
-      user_w_audio_data => user_w_audio_data,
-      user_w_audio_open => user_w_audio_open,
+      user_w_command_wren => user_w_command_wren,
+      user_w_command_full => user_w_command_full,
+      user_w_command_data => user_w_command_data,
+      user_w_command_open => user_w_command_open,
 
       -- Ports related to /dev/xillybus_config
       -- CPU to FPGA signals:
@@ -382,22 +248,6 @@ begin
       user_config_addr => user_config_addr,
       user_config_addr_update => user_config_addr_update,
 
-      -- Ports related to /dev/xillybus_mem_8
-      -- FPGA to CPU signals:
-      user_r_mem_8_rden => user_r_mem_8_rden,
-      user_r_mem_8_empty => user_r_mem_8_empty,
-      user_r_mem_8_data => user_r_mem_8_data,
-      user_r_mem_8_eof => user_r_mem_8_eof,
-      user_r_mem_8_open => user_r_mem_8_open,
-      -- CPU to FPGA signals:
-      user_w_mem_8_wren => user_w_mem_8_wren,
-      user_w_mem_8_full => user_w_mem_8_full,
-      user_w_mem_8_data => user_w_mem_8_data,
-      user_w_mem_8_open => user_w_mem_8_open,
-      -- Address signals:
-      user_mem_8_addr => user_mem_8_addr,
-      user_mem_8_addr_update => user_mem_8_addr_update,
-
       -- Ports related to /dev/xillybus_read_32
       -- FPGA to CPU signals:
       user_r_read_32_rden => user_r_read_32_rden,
@@ -405,34 +255,6 @@ begin
       user_r_read_32_data => user_r_read_32_data,
       user_r_read_32_eof => user_r_read_32_eof,
       user_r_read_32_open => user_r_read_32_open,
-
-      -- Ports related to /dev/xillybus_read_8
-      -- FPGA to CPU signals:
-      user_r_read_8_rden => user_r_read_8_rden,
-      user_r_read_8_empty => user_r_read_8_empty,
-      user_r_read_8_data => user_r_read_8_data,
-      user_r_read_8_eof => user_r_read_8_eof,
-      user_r_read_8_open => user_r_read_8_open,
-
-      -- Ports related to /dev/xillybus_smb
-      -- FPGA to CPU signals:
-      user_r_smb_rden => user_r_smb_rden,
-      user_r_smb_empty => user_r_smb_empty,
-      user_r_smb_data => user_r_smb_data,
-      user_r_smb_eof => user_r_smb_eof,
-      user_r_smb_open => user_r_smb_open,
-      -- CPU to FPGA signals:
-      user_w_smb_wren => user_w_smb_wren,
-      user_w_smb_full => user_w_smb_full,
-      user_w_smb_data => user_w_smb_data,
-      user_w_smb_open => user_w_smb_open,
-
-      -- Ports related to /dev/xillybus_write_8
-      -- CPU to FPGA signals:
-      user_w_write_8_wren => user_w_write_8_wren,
-      user_w_write_8_full => user_w_write_8_full,
-      user_w_write_8_data => user_w_write_8_data,
-      user_w_write_8_open => user_w_write_8_open,
 
       -- Ports related to /dev/xillybus_write_feature_32
       -- CPU to FPGA signals:
@@ -524,26 +346,6 @@ begin
       end if;
     end if;
   end process;
-  
---  A simple inferred RAM
-
-  ram_addr <= conv_integer(user_mem_8_addr);
-  
-  process (bus_clk)
-  begin
-    if (bus_clk'event and bus_clk = '1') then
-      if (user_w_mem_8_wren = '1') then 
-        demoarray(ram_addr) <= user_w_mem_8_data;
-      end if;
-      if (user_r_mem_8_rden = '1') then
-        user_r_mem_8_data <= demoarray(ram_addr);
-      end if;
-    end if;
-  end process;
-
-  user_r_mem_8_empty <= '0';
-  user_r_mem_8_eof <= '0';
-  user_w_mem_8_full <= '0';
 
   -- custom design
 
@@ -559,6 +361,12 @@ begin
         user_w_config_open => user_w_config_open,
         user_config_addr => user_config_addr,
         user_config_addr_update => user_config_addr_update,
+
+        -- command interface
+        user_w_command_wren => user_w_command_wren,
+        user_w_command_full => user_w_command_full,
+        user_w_command_data => user_w_command_data,
+        user_w_command_open => user_w_command_open,
 
         -- feature stream
         user_w_write_feature_32_wren => user_w_write_feature_32_wren,
@@ -579,62 +387,5 @@ begin
         user_r_read_32_eof => user_r_read_32_eof,
         user_r_read_32_open => user_r_read_32_open
     );
-
---  8-bit loopback
-
-  fifo_8 : fifo_8x2048
-    port map(
-      clk        => bus_clk,
-      srst       => reset_8,
-      din        => user_w_write_8_data,
-      wr_en      => user_w_write_8_wren,
-      rd_en      => user_r_read_8_rden,
-      dout       => user_r_read_8_data,
-      full       => user_w_write_8_full,
-      empty      => user_r_read_8_empty
-      );
-
-    reset_8 <= not (user_w_write_8_open or user_r_read_8_open);
-
-    user_r_read_8_eof <= '0';
-
-  audio_ins : i2s_audio
-    port map(
-      bus_clk => bus_clk,
-      clk_100 => clk_100,
-      quiesce => quiesce,
-      audio_mclk => audio_mclk,
-      audio_dac => audio_dac,
-      audio_adc => audio_adc,
-      audio_bclk => audio_bclk,
-      audio_lrclk => audio_lrclk,
-      user_r_audio_rden => user_r_audio_rden,
-      user_r_audio_empty => user_r_audio_empty,
-      user_r_audio_data => user_r_audio_data,
-      user_r_audio_eof => user_r_audio_eof,
-      user_r_audio_open => user_r_audio_open,
-      user_w_audio_wren => user_w_audio_wren,
-      user_w_audio_full => user_w_audio_full,
-      user_w_audio_data => user_w_audio_data,
-      user_w_audio_open => user_w_audio_open
-      );
-
-  smbus_ins : smbus
-    port map(
-      bus_clk => bus_clk,
-      quiesce => quiesce,
-      smb_sclk => smb_sclk,
-      smb_sdata => smb_sdata,
-      smbus_addr => smbus_addr,
-      user_r_smb_rden => user_r_smb_rden,
-      user_r_smb_empty => user_r_smb_empty,
-      user_r_smb_data => user_r_smb_data,
-      user_r_smb_eof => user_r_smb_eof,
-      user_r_smb_open => user_r_smb_open,
-      user_w_smb_wren => user_w_smb_wren,
-      user_w_smb_full => user_w_smb_full,
-      user_w_smb_data => user_w_smb_data,
-      user_w_smb_open => user_w_smb_open
-      );
   
 end sample_arch;
