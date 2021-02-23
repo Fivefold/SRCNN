@@ -6,7 +6,7 @@ The purely CPU-run version can run on any Linux-based system but is **made prima
 
 ## General prerequisites
 
-* Python (tested on Python 3.8 but should work on any version above 3.5)
+* Python (tested on Python 3.8)
   * Numpy (tested on 1.19.5)
   * Pillow (tested on 8.1.0)
   * wurlitzer (tested on 2.0.1)

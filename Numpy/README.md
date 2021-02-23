@@ -4,7 +4,7 @@ This is an implementation of the *Super Resolution Convolutional Neural Network 
 
 ## Prerequisites
 
-* Python (tested on Python 3.8 but should work on any version above 3.5)
+* Python (tested on Python 3.8)
   * Numpy (tested on 1.20.1)
   * Pillow (tested on 8.1.0)
   * sewar (tested on 1.0.12)
