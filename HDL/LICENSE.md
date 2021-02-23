@@ -5,14 +5,14 @@ Most of the code in this folder is from Xillybus and thus licensed under the xil
 The following files are not from xillybus and licensed under the MIT license (see the [LICENSE.md](LICENSE.md) in the root directory of the repository):
 * any file with the .vhdl ending
 
-The `xillydemo.vhd` is from xillibus but modified by us. Please make a diff to the official `xillydemo.vhd` if you want to see the modifications.
+The `xillydemo.vhd` is from xillibus but was modified. Please make a diff to the official `xillydemo.vhd` if you want to see the modifications. Modifications are licences under the MIT license (see above)
 
 ## ./feature_convolution_pipeline/
 
 The following files are not from xillybus and licensed under the MIT license (see the LICENSE.md in the root directory of the repository):
 * any file in the srcnn subfolder
 
-The `xillydemo.vhd` is from xillibus but modified by us. Please make a diff to the official `xillydemo.vhd` if you want to see the modifications.
+The `xillydemo.vhd` is from xillibus but was modified. Please make a diff to the official `xillydemo.vhd` if you want to see the modifications. Modifications are licences under the MIT license (see above)
 
 # xillybus license
 
