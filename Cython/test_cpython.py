@@ -1,7 +1,10 @@
 import argparse
 
+import sys
+import os
 import numpy as np
 import PIL.Image as pil_image
+import timeit
 
 from util import rgb2ycbcr, ycbcr2rgb
 from metrics import psnr, ssim
@@ -9,9 +12,15 @@ from metrics import psnr, ssim
 from ctypes import c_uint8, c_uint16, c_int32, POINTER, cdll
 from numpy.ctypeslib import ndpointer
 
-from tqdm import tqdm
-import timeit
-# from wurlitzer import sys_pipes  # redirect C stdio & stderr output to python
+
+class HiddenPrints:
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
 
 
 def conv_layer(inputs, weights, biases, mode):
@@ -161,7 +170,8 @@ if __name__ == '__main__':
 
     # image metrics
     PSNR = psnr(ground_truth_np, output_np, 255)
-    SSIM = ssim(ground_truth_pil, output)
+    with HiddenPrints():
+        SSIM = ssim(ground_truth_pil, output)
 
     print("\n--- Image Metrics ---")
     print("PSNR: %.2f dB" % PSNR)
