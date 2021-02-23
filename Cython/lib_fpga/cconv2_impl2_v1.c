@@ -38,6 +38,7 @@ int readPixel(int32_t *pixel, int length);
 int writeByte(int fi, unsigned char *buf);
 int allwrite(int fo, int *buf, int len);
 int allread(int fi, int *buf, int len);
+void flush_stream(int fd);
 
 int writeKernelProcess(conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChannelOut,
     u_int8_t kernelSize, u_int16_t height, u_int16_t width);
@@ -100,6 +101,7 @@ int writeKernelProcess(conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChann
     for(int k = 0; k < numChannelOut; ++k) {
         for(int n = 0; n < numChannelIn; ++n) {
             writeKernel(kernels + k*numChannelIn*kSizeSquared + n*kSizeSquared, kSizeSquared);
+            flush_stream(file_write_kernel);
         }
     }
 
@@ -127,6 +129,7 @@ int writeFeatureProcess(conv_t *input, u_int8_t numChannelIn, u_int8_t numChanne
     for(int k = 0; k < numChannelOut; ++k) {
         for(int n = 0; n < numChannelIn; ++n) {
             writeFeature(input + n * height * width, height * width);
+            flush_stream(file_write_feature);
         }
     }
 
@@ -140,7 +143,7 @@ int readProcess(conv_t *biases, u_int8_t numChannelIn, u_int8_t numChannelOut,
     signal(SIGINT, sigintHandlerRead);
     signal(SIGUSR1, sigintHandlerRead);
 
-    result_feature = malloc(width * height * numChannelOut * sizeof(conv_t));
+    result_feature = malloc(width * height * sizeof(conv_t));
 
     if(!(file_read = open("/dev/xillybus_read_32", O_RDONLY)))
 	{
@@ -151,13 +154,15 @@ int readProcess(conv_t *biases, u_int8_t numChannelIn, u_int8_t numChannelOut,
 
     //convolution loops
     for(int k = 0; k < numChannelOut; ++k) {
-        //printf("n = %d\n", n);
+        //printf("k = %d\n", k);
         for(int n = 0; n < numChannelIn; ++n) {
-            printf("k = %d\n", k);
+            printf("n = %d\n", n);
             
             readPixel(result_feature, height * width);
 
             for(int i = 0; i < height; ++i) {
+
+                //readPixel(result_feature, width);
 
                 for(int j = 0; j < width; ++j) {
 
@@ -165,6 +170,7 @@ int readProcess(conv_t *biases, u_int8_t numChannelIn, u_int8_t numChannelOut,
                     //readPixel(&sum, 1);
                     //output[(k*height*width) + (i*width) + j] += sum;
 
+                    //output[(k*height*width) + (i*width) + j] += result_feature[j];
                     output[(k*height*width) + (i*width) + j] += result_feature[(i*width) + j];
                 }
             }
@@ -309,4 +315,19 @@ int allread(int fi, int *buf, int len)
 		read_data += rc;
 	}
     return 0;
+}
+
+void flush_stream(int fd){
+    int rc;
+
+    while (1) {
+        rc = write(fd, NULL, 0);
+        if ((rc < 0) && (errno == EINTR))
+            continue; // Interrupted. Try again.
+        if (rc < 0) {
+            fprintf(stderr, "flushing failed");
+            break;
+        }
+        break; // Flush successful
+    }
 }
