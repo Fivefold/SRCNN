@@ -31,29 +31,25 @@ static inline fp_t fp_mul(fp_t a, fp_t b) {
 }
 
 int openStreams(void);
-int writeFeature(int32_t* feature, int length);
+int writePatch(int32_t* patch, int length);
 int writeKernel(int32_t* kernel, int length);
 int readPixel(int32_t *pixel, int length);
 
-int writeByte(int fi, unsigned char *buf);
 int allwrite(int fo, int *buf, int len);
 int allread(int fi, int *buf, int len);
-void flush_stream(int fd);
 
 int writeKernelProcess(conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChannelOut,
     u_int8_t kernelSize, u_int16_t height, u_int16_t width);
-int writeFeatureProcess(conv_t *input, u_int8_t numChannelIn, u_int8_t numChannelOut,
+int writePatchProcess(conv_t *input, u_int8_t numChannelIn, u_int8_t numChannelOut,
     u_int8_t kernelSize, u_int16_t height, u_int16_t width);
 int readProcess(conv_t *biases, u_int8_t numChannelIn, u_int8_t numChannelOut,
     u_int16_t height, u_int16_t width);
 
-int file_config;
-int file_write_feature;
+int file_write_patch;
 int file_write_kernel;
 int file_read;
 
 conv_t *output;
-conv_t *result_feature;
 
 void sigintHandlerWriteKernel(int sig)
 {
@@ -61,17 +57,15 @@ void sigintHandlerWriteKernel(int sig)
     exit(1);
 }
 
-void sigintHandlerWriteFeature(int sig)
+void sigintHandlerWritePatch(int sig)
 {
-    close(file_write_feature);
+    close(file_write_patch);
     exit(1);
 }
 
 void sigintHandlerRead(int sig)
 {
     close(file_read);
-    close(file_config);
-    free(result_feature);
     free(output);
 
     if(sig == SIGINT)
@@ -89,8 +83,6 @@ int writeKernelProcess(conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChann
     signal(SIGINT, sigintHandlerWriteKernel);
     signal(SIGUSR1, sigintHandlerWriteKernel);
 
-    close(file_config);
-
     if(!(file_write_kernel = open("/dev/xillybus_write_kernel_32", O_WRONLY)))
 	{
 		fprintf(stderr, "\nError in opening /dev/xillybus_write_kernel_32\n");
@@ -98,10 +90,17 @@ int writeKernelProcess(conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChann
 	}
     printf("Write kernel stream is open.\n");
 
+    //convolution loops
     for(int k = 0; k < numChannelOut; ++k) {
         for(int n = 0; n < numChannelIn; ++n) {
-            writeKernel(kernels + k*numChannelIn*kSizeSquared + n*kSizeSquared, kSizeSquared);
-            flush_stream(file_write_kernel);
+            //it would be possible to write kernel here if it is stored on PL
+            //writeKernel(kernels + k*numChannelIn*kSizeSquared + n*kSizeSquared, kSizeSquared);
+
+            for(int i = 0; i < height; ++i) {
+                for(int j = 0; j < width; ++j) {
+                    writeKernel(kernels + k*numChannelIn*kSizeSquared + n*kSizeSquared, kSizeSquared);
+                }
+            }
         }
     }
 
@@ -109,31 +108,52 @@ int writeKernelProcess(conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChann
     return 0;
 }
 
-int writeFeatureProcess(conv_t *input, u_int8_t numChannelIn, u_int8_t numChannelOut,
+int writePatchProcess(conv_t *input, u_int8_t numChannelIn, u_int8_t numChannelOut,
     u_int8_t kernelSize, u_int16_t height, u_int16_t width)
 {
-    signal(SIGINT, sigintHandlerWriteFeature);
-    signal(SIGUSR1, sigintHandlerWriteFeature);
+    int kSizeHalf = kernelSize/2;
+    int kSizeSquared = kernelSize * kernelSize;
+    conv_t patch[kSizeSquared];
 
-    close(file_config);
+    signal(SIGINT, sigintHandlerWritePatch);
+    signal(SIGUSR1, sigintHandlerWritePatch);
 
-    if(!(file_write_feature = open("/dev/xillybus_write_feature_32", O_WRONLY)))
+    if(!(file_write_patch = open("/dev/xillybus_write_patch_32", O_WRONLY)))
     {
-		fprintf(stderr, "\nError in opening /dev/xillybus_write_feature_32\n");
+		fprintf(stderr, "\nError in opening /dev/xillybus_write_patch_32\n");
         kill(-getpgid(0), SIGUSR1);
 	}
 
-    printf("Write feature stream is open.\n");
+    printf("Write patch stream is open.\n");
 
-
+    //convolution loops
     for(int k = 0; k < numChannelOut; ++k) {
         for(int n = 0; n < numChannelIn; ++n) {
-            writeFeature(input + n * height * width, height * width);
-            flush_stream(file_write_feature);
+            for(int i = 0; i < height; ++i) {
+                for(int j = 0; j < width; ++j) {
+                    
+                    for(int l = 0; l < kernelSize; ++l) {
+                        for(int m = 0; m < kernelSize; ++m) {
+                            
+                            int y = i - kSizeHalf + l;
+                            int x = j - kSizeHalf + m;
+
+                            //padding checks
+                            if(y < 0) y = 0;
+                            if(x < 0) x = 0;
+                            if(y >= height) y = height - 1;
+                            if(x >= width) x = width - 1;
+
+                            patch[(l*kernelSize) + m] = input[(n*height*width) + (y*width) + x];
+                        }
+                    }
+                    writePatch(patch, kSizeSquared);
+                }
+            }
         }
     }
 
-    close(file_write_feature);
+    close(file_write_patch);
     return 0;
 }
 
@@ -142,8 +162,6 @@ int readProcess(conv_t *biases, u_int8_t numChannelIn, u_int8_t numChannelOut,
 {
     signal(SIGINT, sigintHandlerRead);
     signal(SIGUSR1, sigintHandlerRead);
-
-    result_feature = malloc(width * height * sizeof(conv_t));
 
     if(!(file_read = open("/dev/xillybus_read_32", O_RDONLY)))
 	{
@@ -158,20 +176,14 @@ int readProcess(conv_t *biases, u_int8_t numChannelIn, u_int8_t numChannelOut,
         for(int n = 0; n < numChannelIn; ++n) {
             printf("n = %d\n", n);
             
-            readPixel(result_feature, height * width);
-
             for(int i = 0; i < height; ++i) {
-
-                //readPixel(result_feature, width);
-
+                //printf("i = %d\n", i);
                 for(int j = 0; j < width; ++j) {
+                    //printf("j = %d\n", j);
 
-                    //conv_t sum;
-                    //readPixel(&sum, 1);
-                    //output[(k*height*width) + (i*width) + j] += sum;
-
-                    //output[(k*height*width) + (i*width) + j] += result_feature[j];
-                    output[(k*height*width) + (i*width) + j] += result_feature[(i*width) + j];
+                    conv_t sum;
+                    readPixel(&sum, 1);
+                    output[(k*height*width) + (i*width) + j] += sum;
                 }
             }
         }
@@ -190,34 +202,15 @@ int readProcess(conv_t *biases, u_int8_t numChannelIn, u_int8_t numChannelOut,
         }
     }
 
-    free(result_feature);
     close(file_read);
     return 0;
 }
 
-conv_t* cconv2(conv_t *input, conv_t *kernels, conv_t *biases,
+conv_t* cconv1(conv_t *input, conv_t *kernels, conv_t *biases,
     u_int8_t numChannelIn, u_int8_t numChannelOut, u_int8_t kernelSize, u_int16_t height, u_int16_t width) {
-
-    int32_t config_array[3] = {(int32_t)width, (int32_t)height, (int32_t)kernelSize};
 
     //initialize output array
     output = calloc(width * height * numChannelOut, sizeof(conv_t));
-
-    //open config interface
-    if(!(file_config = open("/dev/xillybus_config", O_WRONLY)))
-	{
-		fprintf(stderr, "Error in opening /dev/xillybus_config\n");
-        free(output);
-        exit(1);
-	}
-
-    if(lseek(file_config, 0, SEEK_SET) < 0) {
-        fprintf(stderr, "Error in searching address at /dev/xillybus_config\n");
-        free(output);
-        close(file_config);
-        exit(1);
-    }
-    allwrite(file_config, config_array, 3 * sizeof(int32_t));
     
     switch(fork()) {
         case -1:
@@ -226,7 +219,7 @@ conv_t* cconv2(conv_t *input, conv_t *kernels, conv_t *biases,
             break;
         case 0:
             //child process is patch writer process
-            writeFeatureProcess(input, numChannelIn, numChannelOut, kernelSize, height, width);
+            writePatchProcess(input, numChannelIn, numChannelOut, kernelSize, height, width);
             exit(EXIT_SUCCESS);
         default:
             //parent process
@@ -246,7 +239,6 @@ conv_t* cconv2(conv_t *input, conv_t *kernels, conv_t *biases,
             } 
     }
 
-    close(file_config);
     return output;
 } 
 
@@ -257,26 +249,14 @@ int writeKernel(int32_t* kernel, int length)
     return allwrite(file_write_kernel, kernel, length*sizeof(int32_t));
 }
 
-int writeFeature(int32_t* feature, int length)
+int writePatch(int32_t* patch, int length)
 {
-    return allwrite(file_write_feature, feature, length*sizeof(int32_t));
+    return allwrite(file_write_patch, patch, length*sizeof(int32_t));
 }
 
 int readPixel(int32_t *pixel, int length)
 {
     return allread(file_read, pixel, length*sizeof(int32_t));
-}
-
-int writeByte(int fi, unsigned char *buf)
-{
-    int wc = write(fi, buf, 1);
-
-    if(wc == 0) 
-    {
-        fprintf(stderr, "Reached write EOF (?!)\n");
-        kill(-getpgid(0), SIGUSR1);
-    }
-    return 0;
 }
 
 int allwrite(int fo, int *buf, int len)
@@ -315,19 +295,4 @@ int allread(int fi, int *buf, int len)
 		read_data += rc;
 	}
     return 0;
-}
-
-void flush_stream(int fd){
-    int rc;
-
-    while (1) {
-        rc = write(fd, NULL, 0);
-        if ((rc < 0) && (errno == EINTR))
-            continue; // Interrupted. Try again.
-        if (rc < 0) {
-            fprintf(stderr, "flushing failed");
-            break;
-        }
-        break; // Flush successful
-    }
 }

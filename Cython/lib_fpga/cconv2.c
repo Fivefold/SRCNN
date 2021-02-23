@@ -38,6 +38,7 @@ int readPixel(int32_t *pixel, int length);
 int writeByte(int fi, unsigned char *buf);
 int allwrite(int fo, int *buf, int len);
 int allread(int fi, int *buf, int len);
+void flush_stream(int fd);
 
 int writeKernelProcess(conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChannelOut,
     u_int8_t kernelSize, u_int16_t height, u_int16_t width);
@@ -47,7 +48,6 @@ int readProcess(conv_t *biases, u_int8_t numChannelIn, u_int8_t numChannelOut,
     u_int16_t height, u_int16_t width);
 
 int file_config;
-int file_cmd;
 int file_write_feature;
 int file_write_kernel;
 int file_read;
@@ -64,7 +64,6 @@ void sigintHandlerWriteKernel(int sig)
 void sigintHandlerWriteFeature(int sig)
 {
     close(file_write_feature);
-    close(file_cmd);
     exit(1);
 }
 
@@ -99,9 +98,10 @@ int writeKernelProcess(conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChann
 	}
     printf("Write kernel stream is open.\n");
 
-    for(int n = 0; n < numChannelIn; ++n) {
-        for(int k = 0; k < numChannelOut; ++k) {
+    for(int k = 0; k < numChannelOut; ++k) {
+        for(int n = 0; n < numChannelIn; ++n) {
             writeKernel(kernels + k*numChannelIn*kSizeSquared + n*kSizeSquared, kSizeSquared);
+            flush_stream(file_write_kernel);
         }
     }
 
@@ -112,18 +112,10 @@ int writeKernelProcess(conv_t *kernels, u_int8_t numChannelIn, u_int8_t numChann
 int writeFeatureProcess(conv_t *input, u_int8_t numChannelIn, u_int8_t numChannelOut,
     u_int8_t kernelSize, u_int16_t height, u_int16_t width)
 {
-    //unsigned char dummy = 1;
-
     signal(SIGINT, sigintHandlerWriteFeature);
     signal(SIGUSR1, sigintHandlerWriteFeature);
 
     close(file_config);
-
-    if(!(file_cmd = open("/dev/xillybus_command", O_WRONLY)))
-    {
-		fprintf(stderr, "\nError in opening /dev/xillybus_command\n");
-        kill(-getpgid(0), SIGUSR1);
-	}
 
     if(!(file_write_feature = open("/dev/xillybus_write_feature_32", O_WRONLY)))
     {
@@ -134,21 +126,13 @@ int writeFeatureProcess(conv_t *input, u_int8_t numChannelIn, u_int8_t numChanne
     printf("Write feature stream is open.\n");
 
 
-    for(int n = 0; n < numChannelIn; ++n) {
-
-        /*writeFeature(input + n * height * width, height * width);
-
-        for(int k = 1; k < numChannelOut; ++k) {
-            writeByte(file_cmd, &dummy);
-        }*/
-
-
-        for(int k = 0; k < numChannelOut; ++k) {
+    for(int k = 0; k < numChannelOut; ++k) {
+        for(int n = 0; n < numChannelIn; ++n) {
             writeFeature(input + n * height * width, height * width);
+            flush_stream(file_write_feature);
         }
     }
 
-    close(file_cmd);
     close(file_write_feature);
     return 0;
 }
@@ -159,7 +143,7 @@ int readProcess(conv_t *biases, u_int8_t numChannelIn, u_int8_t numChannelOut,
     signal(SIGINT, sigintHandlerRead);
     signal(SIGUSR1, sigintHandlerRead);
 
-    result_feature = malloc(width * height * numChannelOut * sizeof(conv_t));
+    result_feature = malloc(width * height * sizeof(conv_t));
 
     if(!(file_read = open("/dev/xillybus_read_32", O_RDONLY)))
 	{
@@ -169,14 +153,16 @@ int readProcess(conv_t *biases, u_int8_t numChannelIn, u_int8_t numChannelOut,
     printf("Read stream is open.\n");
 
     //convolution loops
-    for(int n = 0; n < numChannelIn; ++n) {
-        //printf("n = %d\n", n);
-        for(int k = 0; k < numChannelOut; ++k) {
-            printf("k = %d\n", k);
+    for(int k = 0; k < numChannelOut; ++k) {
+        //printf("k = %d\n", k);
+        for(int n = 0; n < numChannelIn; ++n) {
+            printf("n = %d\n", n);
             
             readPixel(result_feature, height * width);
 
             for(int i = 0; i < height; ++i) {
+
+                //readPixel(result_feature, width);
 
                 for(int j = 0; j < width; ++j) {
 
@@ -184,13 +170,12 @@ int readProcess(conv_t *biases, u_int8_t numChannelIn, u_int8_t numChannelOut,
                     //readPixel(&sum, 1);
                     //output[(k*height*width) + (i*width) + j] += sum;
 
+                    //output[(k*height*width) + (i*width) + j] += result_feature[j];
                     output[(k*height*width) + (i*width) + j] += result_feature[(i*width) + j];
                 }
             }
         }
-    }
 
-    for(int k = 0; k < numChannelOut; ++k) {
         for(int i = 0; i < height; ++i) {
             for(int j = 0; j < width; ++j) {
                 //adding biases
@@ -330,4 +315,19 @@ int allread(int fi, int *buf, int len)
 		read_data += rc;
 	}
     return 0;
+}
+
+void flush_stream(int fd){
+    int rc;
+
+    while (1) {
+        rc = write(fd, NULL, 0);
+        if ((rc < 0) && (errno == EINTR))
+            continue; // Interrupted. Try again.
+        if (rc < 0) {
+            fprintf(stderr, "flushing failed");
+            break;
+        }
+        break; // Flush successful
+    }
 }
