@@ -9,29 +9,23 @@ from metrics import psnr, ssim
 from ctypes import c_uint8, c_uint16, c_int32, POINTER, cdll
 from numpy.ctypeslib import ndpointer
 
+from tqdm import tqdm
 import timeit
-from wurlitzer import sys_pipes  # redirect C stdio & stderr output to python
-
-lib_cpu = cdll.LoadLibrary("./lib_cpu/cconv.so")
-c_conv_cpu = lib_cpu.cconv
-
-lib_fpga = cdll.LoadLibrary("./lib_fpga/cconv2.so")
-c_conv_fpga = lib_fpga.cconv2
-
-scale = 3
+# from wurlitzer import sys_pipes  # redirect C stdio & stderr output to python
 
 
-def conv_layer_cpu(inputs, weights, biases):
+def conv_layer(inputs, weights, biases, mode):
     numChannelOut, numChannelIn, kernelSize, _ = weights.shape
 
     kernels = weights.flatten('C')
     biases_f = biases.flatten('C')
 
-    c_conv_cpu.restype = ndpointer(dtype=c_int32, shape=(
-        (numChannelOut * image_height * image_width),))
-
     c_int32_p = POINTER(c_int32)
-    with sys_pipes():
+    # with sys_pipes():
+    if mode == "cpu":
+        c_conv_cpu.restype = ndpointer(dtype=c_int32, shape=(
+            (numChannelOut * image_height * image_width),))
+
         result = c_conv_cpu(inputs.ctypes.data_as(c_int32_p),
                             kernels.ctypes.data_as(c_int32_p),
                             biases_f.ctypes.data_as(c_int32_p),
@@ -40,37 +34,43 @@ def conv_layer_cpu(inputs, weights, biases):
                             c_uint8(kernelSize),
                             c_uint16(image_height),
                             c_uint16(image_width))
-    return result
+    else:
+        c_conv_fpga.restype = ndpointer(dtype=c_int32, shape=(
+            (numChannelOut * image_height * image_width),))
 
-
-def conv_layer_fpga(inputs, weights, biases):
-    numChannelOut, numChannelIn, kernelSize, _ = weights.shape
-
-    kernels = weights.flatten('C')
-    biases_f = biases.flatten('C')
-
-    c_conv_fpga.restype = ndpointer(dtype=c_int32, shape=(
-        (numChannelOut * image_height * image_width),))
-
-    c_int32_p = POINTER(c_int32)
-    # with sys_pipes():
-    result = c_conv_fpga(inputs.ctypes.data_as(c_int32_p),
-                         kernels.ctypes.data_as(c_int32_p),
-                         biases_f.ctypes.data_as(c_int32_p),
-                         c_uint8(numChannelIn),
-                         c_uint8(numChannelOut),
-                         c_uint8(kernelSize),
-                         c_uint16(image_height),
-                         c_uint16(image_width))
+        result = c_conv_fpga(inputs.ctypes.data_as(c_int32_p),
+                             kernels.ctypes.data_as(c_int32_p),
+                             biases_f.ctypes.data_as(c_int32_p),
+                             c_uint8(numChannelIn),
+                             c_uint8(numChannelOut),
+                             c_uint8(kernelSize),
+                             c_uint16(image_height),
+                             c_uint16(image_width))
     return result
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--image-file', type=str, required=True)
+    parser.add_argument('--mode', type=str, required=True,
+                        choices=['cpu', 'fpga1', 'fpga2'])
+    parser.add_argument('--scale', type=int, default=3, choices=[3])
+    # Only scale 3 is supported currently.
+    # Other scales need new weights & biases
     args = parser.parse_args()
 
-    args.scale = 3  # global scale. There are only weights for scale x3
+    # --- load c convolution libraries ---
+    if args.mode == "cpu":
+        lib_cpu = cdll.LoadLibrary("./lib_cpu/cconv.so")
+        c_conv_cpu = lib_cpu.cconv
+    elif args.mode == "fpga1":
+        lib_cpu = cdll.LoadLibrary("./lib_cpu/cconv.so")
+        c_conv_cpu = lib_cpu.cconv
+        lib_fpga = cdll.LoadLibrary("./lib_fpga/cconv1.so")
+        c_conv_fpga = lib_fpga.cconv1
+    else:  # fpga2
+        lib_fpga = cdll.LoadLibrary("./lib_fpga/cconv2.so")
+        c_conv_fpga = lib_fpga.cconv2
 
     timer_start = timeit.default_timer()
 
@@ -90,11 +90,14 @@ if __name__ == '__main__':
     # resize to a multiple of 3 to get the ground truth
     image = image.resize((image_width, image_height),
                          resample=pil_image.BICUBIC)
+    image.save(args.image_file.replace(
+        '.bmp', '_GT.bmp'))
     ground_truth_pil = image
     ground_truth_np = np.array(image)
     # actual resizing to 1/3
     image = image.resize((image.width // args.scale, image.height //
                           args.scale), resample=pil_image.BICUBIC)
+
     # back x3
     image = image.resize((image.width * args.scale, image.height *
                           args.scale), resample=pil_image.BICUBIC)
@@ -114,15 +117,23 @@ if __name__ == '__main__':
 
     # --- Convolution layers ---
     cc0 = y.flatten('C')
-    print("\nStarting convolution layer 1...")
-    cc1 = conv_layer_cpu(cc0, conv1_w, conv1_b)
-    print("done")
-    print("Starting convolution layer 2...")
-    cc2 = conv_layer_fpga(cc1, conv2_w, conv2_b)
-    print("done")
-    print("Starting convolution layer 3...")
-    cc3 = conv_layer_fpga(cc2, conv3_w, conv3_b)
-    print("done")
+    if args.mode == "fpga1":
+        # fpga1 mode only calculates layer 2 and 3 on the fpga
+        print("\nStarting convolution layer 1 of 3...")
+        cc1 = conv_layer(cc0, conv1_w, conv1_b, "cpu")
+        print("\nStarting convolution layer 2 of 3...")
+        cc2 = conv_layer(cc1, conv2_w, conv2_b, args.mode)
+        print("\nStarting convolution layer 3 of 3...")
+        cc3 = conv_layer(cc2, conv3_w, conv3_b, args.mode)
+    else:
+        # cpu and fpga2 modes calculate all layer on the
+        # cpu and fpga respectively
+        print("\nStarting convolution layer 1 of 3...")
+        cc1 = conv_layer(cc0, conv1_w, conv1_b, args.mode)
+        print("\nStarting convolution layer 2 of 3...")
+        cc2 = conv_layer(cc1, conv2_w, conv2_b, args.mode)
+        print("\nStarting convolution layer 3 of 3...")
+        cc3 = conv_layer(cc2, conv3_w, conv3_b, args.mode)
     cc3 = cc3.reshape(1, image_height, image_width)
 
     # Conversion from fixed point back to float
@@ -140,8 +151,9 @@ if __name__ == '__main__':
     output.save(args.image_file.replace(
         '.bmp', '_srcnn_x{}.bmp'.format(args.scale)))
 
-    print("\nUpscaling finished!")
-    print("Ground truth image saved at \t" + args.image_file)
+    print("\n\nUpscaling finished!\n")
+    print("Ground truth image saved at \t" + args.image_file.replace(
+        '.bmp', '_GT.bmp'))
     print("Bicubic upscaled image saved at " + args.image_file.replace(
         '.bmp', '_bicubic_x{}.bmp'.format(args.scale)))
     print("SRCNN upscaled image saved at \t" + args.image_file.replace(
