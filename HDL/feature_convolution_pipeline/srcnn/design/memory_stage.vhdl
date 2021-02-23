@@ -198,7 +198,7 @@ begin
             end if;
 
             -- synchronous feature memory fill logic
-            if feature_wren = '1' and skip_feature_retransmission = '0' then
+            if feature_wren = '1' and (skip_feature_retransmission = '0' or feature_fill_cnt /= 0) then
 
                 feature_fill_cnt <= feature_fill_cnt + 1;
                 if feature_fill_cnt_x >= image_width - 1 then
@@ -345,7 +345,7 @@ begin
             end if;
 
             -- feature retransmission cancellation
-            if featurefill_done = '0' and skip_feature_retransmission = '1' and feature_fill_cnt = 0 then
+            if featurefill_done = '0' and skip_feature_retransmission = '1' and feature_fill_cnt = 0 and feature_wren = '0' then
                 skip_feature_retransmission := '0';
                 featurefill_done <= '1';
             end if;
