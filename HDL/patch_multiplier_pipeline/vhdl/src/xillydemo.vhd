@@ -65,57 +65,19 @@ architecture sample_arch of xillydemo is
       vga4_red : OUT std_logic_vector(3 DOWNTO 0);
       vga_hsync : OUT std_logic;
       vga_vsync : OUT std_logic;
-      user_r_audio_rden : OUT std_logic;
-      user_r_audio_empty : IN std_logic;
-      user_r_audio_data : IN std_logic_vector(31 DOWNTO 0);
-      user_r_audio_eof : IN std_logic;
-      user_r_audio_open : OUT std_logic;
-      user_w_audio_wren : OUT std_logic;
-      user_w_audio_full : IN std_logic;
-      user_w_audio_data : OUT std_logic_vector(31 DOWNTO 0);
-      user_w_audio_open : OUT std_logic;
-      user_r_mem_8_rden : OUT std_logic;
-      user_r_mem_8_empty : IN std_logic;
-      user_r_mem_8_data : IN std_logic_vector(7 DOWNTO 0);
-      user_r_mem_8_eof : IN std_logic;
-      user_r_mem_8_open : OUT std_logic;
-      user_w_mem_8_wren : OUT std_logic;
-      user_w_mem_8_full : IN std_logic;
-      user_w_mem_8_data : OUT std_logic_vector(7 DOWNTO 0);
-      user_w_mem_8_open : OUT std_logic;
-      user_mem_8_addr : OUT std_logic_vector(4 DOWNTO 0);
-      user_mem_8_addr_update : OUT std_logic;
       user_r_read_32_rden : OUT std_logic;
       user_r_read_32_empty : IN std_logic;
       user_r_read_32_data : IN std_logic_vector(31 DOWNTO 0);
       user_r_read_32_eof : IN std_logic;
       user_r_read_32_open : OUT std_logic;
-      user_r_read_8_rden : OUT std_logic;
-      user_r_read_8_empty : IN std_logic;
-      user_r_read_8_data : IN std_logic_vector(7 DOWNTO 0);
-      user_r_read_8_eof : IN std_logic;
-      user_r_read_8_open : OUT std_logic;
-      user_r_smb_rden : OUT std_logic;
-      user_r_smb_empty : IN std_logic;
-      user_r_smb_data : IN std_logic_vector(7 DOWNTO 0);
-      user_r_smb_eof : IN std_logic;
-      user_r_smb_open : OUT std_logic;
-      user_w_smb_wren : OUT std_logic;
-      user_w_smb_full : IN std_logic;
-      user_w_smb_data : OUT std_logic_vector(7 DOWNTO 0);
-      user_w_smb_open : OUT std_logic;
-      user_w_write_8_wren : OUT std_logic;
-      user_w_write_8_full : IN std_logic;
-      user_w_write_8_data : OUT std_logic_vector(7 DOWNTO 0);
-      user_w_write_8_open : OUT std_logic;
-      user_w_write_kernel_32_wren : OUT std_logic;
-      user_w_write_kernel_32_full : IN std_logic;
-      user_w_write_kernel_32_data : OUT std_logic_vector(31 DOWNTO 0);
-      user_w_write_kernel_32_open : OUT std_logic;
       user_w_write_patch_32_wren : OUT std_logic;
       user_w_write_patch_32_full : IN std_logic;
       user_w_write_patch_32_data : OUT std_logic_vector(31 DOWNTO 0);
       user_w_write_patch_32_open : OUT std_logic;
+      user_w_write_kernel_32_wren : OUT std_logic;
+      user_w_write_kernel_32_full : IN std_logic;
+      user_w_write_kernel_32_data : OUT std_logic_vector(31 DOWNTO 0);
+      user_w_write_kernel_32_open : OUT std_logic;
       user_clk : OUT std_logic;
       user_wren : OUT std_logic;
       user_rden : OUT std_logic;
@@ -126,174 +88,76 @@ architecture sample_arch of xillydemo is
       user_irq : IN std_logic);
   end component;
 
-  component fifo_8x2048
-    port (
-      clk: IN std_logic;
-      srst: IN std_logic;
-      din: IN std_logic_VECTOR(7 downto 0);
-      wr_en: IN std_logic;
-      rd_en: IN std_logic;
-      dout: OUT std_logic_VECTOR(7 downto 0);
-      full: OUT std_logic;
-      empty: OUT std_logic);
-  end component;
-
-  component fifo_32x512
-    port (
-      clk: IN std_logic;
-      srst: IN std_logic;
-      din: IN std_logic_VECTOR(31 downto 0);
-      wr_en: IN std_logic;
-      rd_en: IN std_logic;
-      dout: OUT std_logic_VECTOR(31 downto 0);
-      full: OUT std_logic;
-      empty: OUT std_logic);
-  end component;
-
-  component i2s_audio
-    port (
-      bus_clk : IN std_logic;
-      clk_100 : IN std_logic;
-      quiesce : IN std_logic;
-      audio_mclk : OUT std_logic;
-      audio_dac : OUT std_logic;
-      audio_adc : IN std_logic;
-      audio_bclk : IN std_logic;
-      audio_lrclk : IN std_logic;
-      user_r_audio_rden : IN std_logic;
-      user_r_audio_empty : OUT std_logic;
-      user_r_audio_data : OUT std_logic_vector(31 DOWNTO 0);
-      user_r_audio_eof : OUT std_logic;
-      user_r_audio_open : IN std_logic;
-      user_w_audio_wren : IN std_logic;
-      user_w_audio_full : OUT std_logic;
-      user_w_audio_data : IN std_logic_vector(31 DOWNTO 0);
-      user_w_audio_open : IN std_logic);
-  end component;
-
-  component smbus
-    port (
-      bus_clk : IN std_logic;
-      quiesce : IN std_logic;
-      smb_sclk : OUT std_logic;
-      smb_sdata : INOUT std_logic;
-      smbus_addr : OUT std_logic_vector(1 DOWNTO 0);
-      user_r_smb_rden : IN std_logic;
-      user_r_smb_empty : OUT std_logic;
-      user_r_smb_data : OUT std_logic_vector(7 DOWNTO 0);
-      user_r_smb_eof : OUT std_logic;
-      user_r_smb_open : IN std_logic;
-      user_w_smb_wren : IN std_logic;
-      user_w_smb_full : OUT std_logic;
-      user_w_smb_data : IN std_logic_vector(7 DOWNTO 0);
-      user_w_smb_open : IN std_logic);
-  end component;
-
-  component patch_mult is
-    generic(
-        KERNELSIZE : natural := 9
-    );
+  component custom_design is
     port(
+        -- global
         clk : in std_logic;
-        rst : in std_logic;
-    
-        --start : in std_logic;
-        valid_i : in std_logic;
-        valid_o : out std_logic;
-        stall_i : in std_logic;
-        en_o : out std_logic;
 
-        patch_val_i  : in std_logic_vector(31 downto 0);
-        kernel_val_i : in std_logic_vector(31 downto 0);
-        patch_val_o  : out std_logic_vector(31 downto 0)
+        -- patch stream
+        user_w_write_patch_32_wren : in std_logic;
+        user_w_write_patch_32_full : out std_logic;
+        user_w_write_patch_32_data : in std_logic_vector(31 DOWNTO 0);
+        user_w_write_patch_32_open : in std_logic;
+
+        -- kernel stream
+        user_w_write_kernel_32_wren : in std_logic;
+        user_w_write_kernel_32_full : out std_logic;
+        user_w_write_kernel_32_data : in std_logic_vector(31 DOWNTO 0);
+        user_w_write_kernel_32_open : in std_logic;
+
+        -- output stream
+        user_r_read_32_rden : in std_logic;
+        user_r_read_32_empty : out std_logic;
+        user_r_read_32_data : out std_logic_vector(31 DOWNTO 0);
+        user_r_read_32_eof : out std_logic;
+        user_r_read_32_open : in std_logic
     );
-end component;
+  end component;
 
 -- Synplicity black box declaration
-  attribute syn_black_box : boolean;
-  attribute syn_black_box of fifo_32x512: component is true;
-  attribute syn_black_box of fifo_8x2048: component is true;
+  --attribute syn_black_box : boolean;
+  --attribute syn_black_box of fifo_32x512: component is true;
+  --attribute syn_black_box of fifo_8x2048: component is true;
 
   type demo_mem is array(0 TO 31) of std_logic_vector(7 DOWNTO 0);
-  signal demoarray : demo_mem;
   signal litearray0 : demo_mem;
   signal litearray1 : demo_mem;
   signal litearray2 : demo_mem;
   signal litearray3 : demo_mem;
-  
-  signal bus_clk :  std_logic;
+  signal lite_addr : integer range 0 to 31;
+
   signal quiesce : std_logic;
 
-  signal reset_8 : std_logic;
-  signal reset_32 : std_logic;
+  -- clock
+  signal bus_clk :  std_logic;
 
-  signal ram_addr : integer range 0 to 31;
-  signal lite_addr : integer range 0 to 31;
-    
-  signal user_r_mem_8_rden :  std_logic;
-  signal user_r_mem_8_empty :  std_logic;
-  signal user_r_mem_8_data :  std_logic_vector(7 DOWNTO 0);
-  signal user_r_mem_8_eof :  std_logic;
-  signal user_r_mem_8_open :  std_logic;
-  signal user_w_mem_8_wren :  std_logic;
-  signal user_w_mem_8_full :  std_logic;
-  signal user_w_mem_8_data :  std_logic_vector(7 DOWNTO 0);
-  signal user_w_mem_8_open :  std_logic;
-  signal user_mem_8_addr :  std_logic_vector(4 DOWNTO 0);
-  signal user_mem_8_addr_update :  std_logic;
+  -- output stream
   signal user_r_read_32_rden :  std_logic;
   signal user_r_read_32_empty :  std_logic;
   signal user_r_read_32_data :  std_logic_vector(31 DOWNTO 0);
   signal user_r_read_32_eof :  std_logic;
   signal user_r_read_32_open :  std_logic;
-  signal user_r_read_8_rden :  std_logic;
-  signal user_r_read_8_empty :  std_logic;
-  signal user_r_read_8_data :  std_logic_vector(7 DOWNTO 0);
-  signal user_r_read_8_eof :  std_logic;
-  signal user_r_read_8_open :  std_logic;
-  --
-  --signal user_w_write_32_wren :  std_logic;
-  --signal user_w_write_32_full :  std_logic;
-  --signal user_w_write_32_data :  std_logic_vector(31 DOWNTO 0);
-  --signal user_w_write_32_open :  std_logic;
-  signal user_w_write_kernel_32_wren :  std_logic;
-  signal user_w_write_kernel_32_full :  std_logic;
-  signal user_w_write_kernel_32_data :  std_logic_vector(31 DOWNTO 0);
-  signal user_w_write_kernel_32_open :  std_logic;
+
+  -- patch stream
   signal user_w_write_patch_32_wren :  std_logic;
   signal user_w_write_patch_32_full :  std_logic;
   signal user_w_write_patch_32_data :  std_logic_vector(31 DOWNTO 0);
   signal user_w_write_patch_32_open :  std_logic;
-  --
-  signal user_w_write_8_wren :  std_logic;
-  signal user_w_write_8_full :  std_logic;
-  signal user_w_write_8_data :  std_logic_vector(7 DOWNTO 0);
-  signal user_w_write_8_open :  std_logic;
-  signal user_r_audio_rden :  std_logic;
-  signal user_r_audio_empty :  std_logic;
-  signal user_r_audio_data :  std_logic_vector(31 DOWNTO 0);
-  signal user_r_audio_eof :  std_logic;
-  signal user_r_audio_open :  std_logic;
-  signal user_w_audio_wren :  std_logic;
-  signal user_w_audio_full :  std_logic;
-  signal user_w_audio_data :  std_logic_vector(31 DOWNTO 0);
-  signal user_w_audio_open :  std_logic;
-  signal user_r_smb_rden :  std_logic;
-  signal user_r_smb_empty :  std_logic;
-  signal user_r_smb_data :  std_logic_vector(7 DOWNTO 0);
-  signal user_r_smb_eof :  std_logic;
-  signal user_r_smb_open :  std_logic;
-  signal user_w_smb_wren :  std_logic;
-  signal user_w_smb_full :  std_logic;
-  signal user_w_smb_data :  std_logic_vector(7 DOWNTO 0);
-  signal user_w_smb_open :  std_logic;
+
+  -- kernel stream
+  signal user_w_write_kernel_32_wren :  std_logic;
+  signal user_w_write_kernel_32_full :  std_logic;
+  signal user_w_write_kernel_32_data :  std_logic_vector(31 DOWNTO 0);
+  signal user_w_write_kernel_32_open :  std_logic;
+
+  -- xillybus lite
   signal user_clk :  std_logic;
   signal user_wren :  std_logic;
-  signal user_wstrb :  std_logic_vector(3 DOWNTO 0);
   signal user_rden :  std_logic;
+  signal user_wstrb :  std_logic_vector(3 DOWNTO 0);
+  signal user_addr :  std_logic_vector(31 DOWNTO 0);
   signal user_rd_data :  std_logic_vector(31 DOWNTO 0);
   signal user_wr_data :  std_logic_vector(31 DOWNTO 0);
-  signal user_addr :  std_logic_vector(31 DOWNTO 0);
   signal user_irq :  std_logic;
 
   -- Note that none of the ARM processor's direct connections to pads is
@@ -325,55 +189,10 @@ end component;
   signal DDR_VRP : std_logic;
   signal MIO : std_logic_vector(53 DOWNTO 0);
   signal DDR_WEB : std_logic;
-
-  signal rd_en_patch : std_logic;
-  signal rd_en_kernel : std_logic;
-  signal empty_patch : std_logic;
-  signal empty_kernel : std_logic;
-  signal wr_en_o : std_logic;
-  signal full_o : std_logic;
-
-  signal srcnn_valid_i : std_logic;
-  signal srcnn_valid_reg_i : std_logic;
-  signal srcnn_valid_o : std_logic;
-  signal srcnn_stall_i : std_logic;
-  signal srcnn_en_o : std_logic;
-  signal patch_data_in : std_logic_vector(31 downto 0);
-  signal kernel_data_in : std_logic_vector(31 downto 0);
-  signal result : std_logic_vector(31 downto 0);
   
 begin
   xillybus_ins : xillybus
     port map (
-      -- Ports related to /dev/xillybus_audio
-      -- FPGA to CPU signals:
-      user_r_audio_rden => user_r_audio_rden,
-      user_r_audio_empty => user_r_audio_empty,
-      user_r_audio_data => user_r_audio_data,
-      user_r_audio_eof => user_r_audio_eof,
-      user_r_audio_open => user_r_audio_open,
-      -- CPU to FPGA signals:
-      user_w_audio_wren => user_w_audio_wren,
-      user_w_audio_full => user_w_audio_full,
-      user_w_audio_data => user_w_audio_data,
-      user_w_audio_open => user_w_audio_open,
-
-      -- Ports related to /dev/xillybus_mem_8
-      -- FPGA to CPU signals:
-      user_r_mem_8_rden => user_r_mem_8_rden,
-      user_r_mem_8_empty => user_r_mem_8_empty,
-      user_r_mem_8_data => user_r_mem_8_data,
-      user_r_mem_8_eof => user_r_mem_8_eof,
-      user_r_mem_8_open => user_r_mem_8_open,
-      -- CPU to FPGA signals:
-      user_w_mem_8_wren => user_w_mem_8_wren,
-      user_w_mem_8_full => user_w_mem_8_full,
-      user_w_mem_8_data => user_w_mem_8_data,
-      user_w_mem_8_open => user_w_mem_8_open,
-      -- Address signals:
-      user_mem_8_addr => user_mem_8_addr,
-      user_mem_8_addr_update => user_mem_8_addr_update,
-
       -- Ports related to /dev/xillybus_read_32
       -- FPGA to CPU signals:
       user_r_read_32_rden => user_r_read_32_rden,
@@ -382,33 +201,12 @@ begin
       user_r_read_32_eof => user_r_read_32_eof,
       user_r_read_32_open => user_r_read_32_open,
 
-      -- Ports related to /dev/xillybus_read_8
-      -- FPGA to CPU signals:
-      user_r_read_8_rden => user_r_read_8_rden,
-      user_r_read_8_empty => user_r_read_8_empty,
-      user_r_read_8_data => user_r_read_8_data,
-      user_r_read_8_eof => user_r_read_8_eof,
-      user_r_read_8_open => user_r_read_8_open,
-
-      -- Ports related to /dev/xillybus_smb
-      -- FPGA to CPU signals:
-      user_r_smb_rden => user_r_smb_rden,
-      user_r_smb_empty => user_r_smb_empty,
-      user_r_smb_data => user_r_smb_data,
-      user_r_smb_eof => user_r_smb_eof,
-      user_r_smb_open => user_r_smb_open,
+      -- Ports related to /dev/xillybus_write_patch_32
       -- CPU to FPGA signals:
-      user_w_smb_wren => user_w_smb_wren,
-      user_w_smb_full => user_w_smb_full,
-      user_w_smb_data => user_w_smb_data,
-      user_w_smb_open => user_w_smb_open,
-
-      -- Ports related to /dev/xillybus_write_8
-      -- CPU to FPGA signals:
-      user_w_write_8_wren => user_w_write_8_wren,
-      user_w_write_8_full => user_w_write_8_full,
-      user_w_write_8_data => user_w_write_8_data,
-      user_w_write_8_open => user_w_write_8_open,
+      user_w_write_patch_32_wren => user_w_write_patch_32_wren,
+      user_w_write_patch_32_full => user_w_write_patch_32_full,
+      user_w_write_patch_32_data => user_w_write_patch_32_data,
+      user_w_write_patch_32_open => user_w_write_patch_32_open,
 
       -- Ports related to /dev/xillybus_write_kernel_32
       -- CPU to FPGA signals:
@@ -416,13 +214,6 @@ begin
       user_w_write_kernel_32_full => user_w_write_kernel_32_full,
       user_w_write_kernel_32_data => user_w_write_kernel_32_data,
       user_w_write_kernel_32_open => user_w_write_kernel_32_open,
-
-      -- Ports related to /dev/xillybus_write_patch_32
-      -- CPU to FPGA signals:
-      user_w_write_patch_32_wren => user_w_write_patch_32_wren,
-      user_w_write_patch_32_full => user_w_write_patch_32_full,
-      user_w_write_patch_32_data => user_w_write_patch_32_data,
-      user_w_write_patch_32_open => user_w_write_patch_32_open,
 
       -- Ports related to Xillybus Lite
       user_clk => user_clk,
@@ -500,160 +291,32 @@ begin
       end if;
     end if;
   end process;
-  
---  A simple inferred RAM
 
-  ram_addr <= conv_integer(user_mem_8_addr);
-  
-  process (bus_clk)
-  begin
-    if (bus_clk'event and bus_clk = '1') then
-      if (user_w_mem_8_wren = '1') then 
-        demoarray(ram_addr) <= user_w_mem_8_data;
-      end if;
-      if (user_r_mem_8_rden = '1') then
-        user_r_mem_8_data <= demoarray(ram_addr);
-      end if;
-    end if;
-  end process;
+  -- custom design
 
-  user_r_mem_8_empty <= '0';
-  user_r_mem_8_eof <= '0';
-  user_w_mem_8_full <= '0';
-
---  32-bit loopback
-
-  fifo_32_patch : fifo_32x512
+  srcnn_inst : custom_design
     port map(
-      clk        => bus_clk,
-      srst       => reset_32,
-      din        => user_w_write_patch_32_data,
-      wr_en      => user_w_write_patch_32_wren,
-      rd_en      => rd_en_patch,
-      dout       => patch_data_in,
-      full       => user_w_write_patch_32_full,
-      empty      => empty_patch
-      );
+        -- global
+        clk => bus_clk,
 
-  fifo_32_kernel : fifo_32x512
-    port map(
-      clk        => bus_clk,
-      srst       => reset_32,
-      din        => user_w_write_kernel_32_data,
-      wr_en      => user_w_write_kernel_32_wren,
-      rd_en      => rd_en_kernel,
-      dout       => kernel_data_in,
-      full       => user_w_write_kernel_32_full,
-      empty      => empty_kernel
-      );
+        -- patch stream
+        user_w_write_patch_32_wren => user_w_write_patch_32_wren,
+        user_w_write_patch_32_full => user_w_write_patch_32_full,
+        user_w_write_patch_32_data => user_w_write_patch_32_data,
+        user_w_write_patch_32_open => user_w_write_patch_32_open,
 
-  fifo_32_out : fifo_32x512
-    port map(
-      clk        => bus_clk,
-      srst       => reset_32,
-      din        => result,
-      wr_en      => wr_en_o,
-      rd_en      => user_r_read_32_rden,
-      dout       => user_r_read_32_data,
-      full       => full_o,
-      empty      => user_r_read_32_empty
-      );
+        -- kernel stream
+        user_w_write_kernel_32_wren => user_w_write_kernel_32_wren,
+        user_w_write_kernel_32_full => user_w_write_kernel_32_full,
+        user_w_write_kernel_32_data => user_w_write_kernel_32_data,
+        user_w_write_kernel_32_open => user_w_write_kernel_32_open,
 
-  reset_32 <= not (user_w_write_patch_32_open or user_w_write_kernel_32_open or user_r_read_32_open);
-
-  user_r_read_32_eof <= '0';
-
--- srcnn pipeline 
-
-  pm_inst0 : patch_mult
-    generic map(KERNELSIZE => 5)
-    port map(
-      clk => bus_clk,
-      rst => reset_32,
-
-      valid_i => srcnn_valid_reg_i,
-      valid_o => srcnn_valid_o,
-      stall_i => srcnn_stall_i,
-      en_o => srcnn_en_o,
-
-      patch_val_i => patch_data_in,
-      kernel_val_i => kernel_data_in,
-      patch_val_o => result
+        -- output stream
+        user_r_read_32_rden => user_r_read_32_rden,
+        user_r_read_32_empty => user_r_read_32_empty,
+        user_r_read_32_data => user_r_read_32_data,
+        user_r_read_32_eof => user_r_read_32_eof,
+        user_r_read_32_open => user_r_read_32_open
     );
-  
-  srcnn_valid_i <= not (empty_patch or empty_kernel);
-  rd_en_patch <= srcnn_valid_i and srcnn_en_o;
-  rd_en_kernel <= srcnn_valid_i and srcnn_en_o;
-  srcnn_stall_i <= full_o;
-  wr_en_o <= srcnn_valid_o;
-
-  --process for flip-flip as FIFOs are not FWFT
-  process(reset_32, bus_clk)
-  begin
-      if reset_32 = '1' then
-        srcnn_valid_reg_i <= '0';
-      elsif bus_clk'event and bus_clk = '1' then
-        if srcnn_en_o = '1' then
-          srcnn_valid_reg_i <= srcnn_valid_i;
-        end if;
-      end if;
-  end process;
-
---  8-bit loopback
-
-  fifo_8 : fifo_8x2048
-    port map(
-      clk        => bus_clk,
-      srst       => reset_8,
-      din        => user_w_write_8_data,
-      wr_en      => user_w_write_8_wren,
-      rd_en      => user_r_read_8_rden,
-      dout       => user_r_read_8_data,
-      full       => user_w_write_8_full,
-      empty      => user_r_read_8_empty
-      );
-
-    reset_8 <= not (user_w_write_8_open or user_r_read_8_open);
-
-    user_r_read_8_eof <= '0';
-
-  audio_ins : i2s_audio
-    port map(
-      bus_clk => bus_clk,
-      clk_100 => clk_100,
-      quiesce => quiesce,
-      audio_mclk => audio_mclk,
-      audio_dac => audio_dac,
-      audio_adc => audio_adc,
-      audio_bclk => audio_bclk,
-      audio_lrclk => audio_lrclk,
-      user_r_audio_rden => user_r_audio_rden,
-      user_r_audio_empty => user_r_audio_empty,
-      user_r_audio_data => user_r_audio_data,
-      user_r_audio_eof => user_r_audio_eof,
-      user_r_audio_open => user_r_audio_open,
-      user_w_audio_wren => user_w_audio_wren,
-      user_w_audio_full => user_w_audio_full,
-      user_w_audio_data => user_w_audio_data,
-      user_w_audio_open => user_w_audio_open
-      );
-
-  smbus_ins : smbus
-    port map(
-      bus_clk => bus_clk,
-      quiesce => quiesce,
-      smb_sclk => smb_sclk,
-      smb_sdata => smb_sdata,
-      smbus_addr => smbus_addr,
-      user_r_smb_rden => user_r_smb_rden,
-      user_r_smb_empty => user_r_smb_empty,
-      user_r_smb_data => user_r_smb_data,
-      user_r_smb_eof => user_r_smb_eof,
-      user_r_smb_open => user_r_smb_open,
-      user_w_smb_wren => user_w_smb_wren,
-      user_w_smb_full => user_w_smb_full,
-      user_w_smb_data => user_w_smb_data,
-      user_w_smb_open => user_w_smb_open
-      );
   
 end sample_arch;

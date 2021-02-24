@@ -8,18 +8,8 @@ module xillybus(GPIO_LED, quiesce, MIO, PS_SRSTB, PS_CLK, PS_PORB, DDR_Clk,
   user_rd_data, user_wr_data, user_addr, user_irq, user_r_read_32_rden,
   user_r_read_32_data, user_r_read_32_empty, user_r_read_32_eof,
   user_r_read_32_open, user_w_write_patch_32_wren, user_w_write_patch_32_data,
-  user_w_write_patch_32_full, user_w_write_patch_32_open, user_r_read_8_rden,
-  user_r_read_8_data, user_r_read_8_empty, user_r_read_8_eof,
-  user_r_read_8_open, user_w_write_8_wren, user_w_write_8_data,
-  user_w_write_8_full, user_w_write_8_open, user_r_mem_8_rden,
-  user_r_mem_8_data, user_r_mem_8_empty, user_r_mem_8_eof, user_r_mem_8_open,
-  user_w_mem_8_wren, user_w_mem_8_data, user_w_mem_8_full, user_w_mem_8_open,
-  user_mem_8_addr, user_mem_8_addr_update, user_r_audio_rden,
-  user_r_audio_data, user_r_audio_empty, user_r_audio_eof, user_r_audio_open,
-  user_w_audio_wren, user_w_audio_data, user_w_audio_full, user_w_audio_open,
-  user_r_smb_rden, user_r_smb_data, user_r_smb_empty, user_r_smb_eof,
-  user_r_smb_open, user_w_smb_wren, user_w_smb_data, user_w_smb_full,
-  user_w_smb_open, user_w_write_kernel_32_wren, user_w_write_kernel_32_data,
+  user_w_write_patch_32_full, user_w_write_patch_32_open,
+  user_w_write_kernel_32_wren, user_w_write_kernel_32_data,
   user_w_write_kernel_32_full, user_w_write_kernel_32_open);
 
   input  PS_SRSTB;
@@ -33,22 +23,6 @@ module xillybus(GPIO_LED, quiesce, MIO, PS_SRSTB, PS_CLK, PS_PORB, DDR_Clk,
   input  user_r_read_32_empty;
   input  user_r_read_32_eof;
   input  user_w_write_patch_32_full;
-  input [7:0] user_r_read_8_data;
-  input  user_r_read_8_empty;
-  input  user_r_read_8_eof;
-  input  user_w_write_8_full;
-  input [7:0] user_r_mem_8_data;
-  input  user_r_mem_8_empty;
-  input  user_r_mem_8_eof;
-  input  user_w_mem_8_full;
-  input [31:0] user_r_audio_data;
-  input  user_r_audio_empty;
-  input  user_r_audio_eof;
-  input  user_w_audio_full;
-  input [7:0] user_r_smb_data;
-  input  user_r_smb_empty;
-  input  user_r_smb_eof;
-  input  user_w_smb_full;
   input  user_w_write_kernel_32_full;
   output [3:0] GPIO_LED;
   output  quiesce;
@@ -70,28 +44,6 @@ module xillybus(GPIO_LED, quiesce, MIO, PS_SRSTB, PS_CLK, PS_PORB, DDR_Clk,
   output  user_w_write_patch_32_wren;
   output [31:0] user_w_write_patch_32_data;
   output  user_w_write_patch_32_open;
-  output  user_r_read_8_rden;
-  output  user_r_read_8_open;
-  output  user_w_write_8_wren;
-  output [7:0] user_w_write_8_data;
-  output  user_w_write_8_open;
-  output  user_r_mem_8_rden;
-  output  user_r_mem_8_open;
-  output  user_w_mem_8_wren;
-  output [7:0] user_w_mem_8_data;
-  output  user_w_mem_8_open;
-  output [4:0] user_mem_8_addr;
-  output  user_mem_8_addr_update;
-  output  user_r_audio_rden;
-  output  user_r_audio_open;
-  output  user_w_audio_wren;
-  output [31:0] user_w_audio_data;
-  output  user_w_audio_open;
-  output  user_r_smb_rden;
-  output  user_r_smb_open;
-  output  user_w_smb_wren;
-  output [7:0] user_w_smb_data;
-  output  user_w_smb_open;
   output  user_w_write_kernel_32_wren;
   output [31:0] user_w_write_kernel_32_data;
   output  user_w_write_kernel_32_open;
@@ -276,32 +228,24 @@ module xillybus(GPIO_LED, quiesce, MIO, PS_SRSTB, PS_CLK, PS_PORB, DDR_Clk,
       .xillybus_lite_0_user_irq_pin ( user_irq )
     );
 
-  xillybus_core  xillybus_core_ins(.user_r_smb_rden_w(user_r_smb_rden),
-    .user_r_smb_data_w(user_r_smb_data), .user_r_smb_empty_w(user_r_smb_empty),
-    .user_r_smb_eof_w(user_r_smb_eof), .user_r_smb_open_w(user_r_smb_open),
-    .user_w_smb_wren_w(user_w_smb_wren), .user_w_smb_data_w(user_w_smb_data),
-    .user_w_smb_full_w(user_w_smb_full), .user_w_smb_open_w(user_w_smb_open),
-    .user_w_write_kernel_32_wren_w(user_w_write_kernel_32_wren),
-    .user_w_write_kernel_32_data_w(user_w_write_kernel_32_data),
-    .user_w_write_kernel_32_full_w(user_w_write_kernel_32_full),
-    .user_w_write_kernel_32_open_w(user_w_write_kernel_32_open),
-    .GPIO_LED_w(GPIO_LED), .bus_clk_w(bus_clk), .bus_rst_n_w(bus_rst_n),
-    .S_AXI_AWADDR_w(S_AXI_AWADDR), .S_AXI_AWVALID_w(S_AXI_AWVALID),
-    .S_AXI_WDATA_w(S_AXI_WDATA), .quiesce_w(quiesce),
-    .S_AXI_WSTRB_w(S_AXI_WSTRB), .S_AXI_WVALID_w(S_AXI_WVALID),
-    .S_AXI_BREADY_w(S_AXI_BREADY), .S_AXI_ARADDR_w(S_AXI_ARADDR),
-    .S_AXI_ARVALID_w(S_AXI_ARVALID), .S_AXI_RREADY_w(S_AXI_RREADY),
-    .S_AXI_ARREADY_w(S_AXI_ARREADY), .S_AXI_RDATA_w(S_AXI_RDATA),
-    .S_AXI_RRESP_w(S_AXI_RRESP), .S_AXI_RVALID_w(S_AXI_RVALID),
-    .S_AXI_WREADY_w(S_AXI_WREADY), .S_AXI_BRESP_w(S_AXI_BRESP),
-    .S_AXI_BVALID_w(S_AXI_BVALID), .S_AXI_AWREADY_w(S_AXI_AWREADY),
-    .M_AXI_ACP_ARREADY_w(M_AXI_ACP_ARREADY), .M_AXI_ACP_ARVALID_w(M_AXI_ACP_ARVALID),
-    .M_AXI_ACP_ARADDR_w(M_AXI_ACP_ARADDR), .M_AXI_ACP_ARLEN_w(M_AXI_ACP_ARLEN),
-    .M_AXI_ACP_ARSIZE_w(M_AXI_ACP_ARSIZE), .M_AXI_ACP_ARBURST_w(M_AXI_ACP_ARBURST),
-    .M_AXI_ACP_ARPROT_w(M_AXI_ACP_ARPROT), .M_AXI_ACP_ARCACHE_w(M_AXI_ACP_ARCACHE),
-    .M_AXI_ACP_RREADY_w(M_AXI_ACP_RREADY), .M_AXI_ACP_RVALID_w(M_AXI_ACP_RVALID),
-    .M_AXI_ACP_RDATA_w(M_AXI_ACP_RDATA), .user_r_read_32_rden_w(user_r_read_32_rden),
-    .user_r_read_32_data_w(user_r_read_32_data), .user_r_read_32_empty_w(user_r_read_32_empty),
+  xillybus_core  xillybus_core_ins(.GPIO_LED_w(GPIO_LED), .bus_clk_w(bus_clk),
+    .bus_rst_n_w(bus_rst_n), .S_AXI_AWADDR_w(S_AXI_AWADDR),
+    .S_AXI_AWVALID_w(S_AXI_AWVALID), .S_AXI_WDATA_w(S_AXI_WDATA),
+    .quiesce_w(quiesce), .S_AXI_WSTRB_w(S_AXI_WSTRB),
+    .S_AXI_WVALID_w(S_AXI_WVALID), .S_AXI_BREADY_w(S_AXI_BREADY),
+    .S_AXI_ARADDR_w(S_AXI_ARADDR), .S_AXI_ARVALID_w(S_AXI_ARVALID),
+    .S_AXI_RREADY_w(S_AXI_RREADY), .S_AXI_ARREADY_w(S_AXI_ARREADY),
+    .S_AXI_RDATA_w(S_AXI_RDATA), .S_AXI_RRESP_w(S_AXI_RRESP),
+    .S_AXI_RVALID_w(S_AXI_RVALID), .S_AXI_WREADY_w(S_AXI_WREADY),
+    .S_AXI_BRESP_w(S_AXI_BRESP), .S_AXI_BVALID_w(S_AXI_BVALID),
+    .S_AXI_AWREADY_w(S_AXI_AWREADY), .M_AXI_ACP_ARREADY_w(M_AXI_ACP_ARREADY),
+    .M_AXI_ACP_ARVALID_w(M_AXI_ACP_ARVALID), .M_AXI_ACP_ARADDR_w(M_AXI_ACP_ARADDR),
+    .M_AXI_ACP_ARLEN_w(M_AXI_ACP_ARLEN), .M_AXI_ACP_ARSIZE_w(M_AXI_ACP_ARSIZE),
+    .M_AXI_ACP_ARBURST_w(M_AXI_ACP_ARBURST), .M_AXI_ACP_ARPROT_w(M_AXI_ACP_ARPROT),
+    .M_AXI_ACP_ARCACHE_w(M_AXI_ACP_ARCACHE), .M_AXI_ACP_RREADY_w(M_AXI_ACP_RREADY),
+    .M_AXI_ACP_RVALID_w(M_AXI_ACP_RVALID), .M_AXI_ACP_RDATA_w(M_AXI_ACP_RDATA),
+    .user_r_read_32_rden_w(user_r_read_32_rden), .user_r_read_32_data_w(user_r_read_32_data),
+    .user_r_read_32_empty_w(user_r_read_32_empty),
     .user_r_read_32_eof_w(user_r_read_32_eof), .M_AXI_ACP_RRESP_w(M_AXI_ACP_RRESP),
     .user_r_read_32_open_w(user_r_read_32_open), .M_AXI_ACP_RLAST_w(M_AXI_ACP_RLAST),
     .M_AXI_ACP_AWREADY_w(M_AXI_ACP_AWREADY), .M_AXI_ACP_AWVALID_w(M_AXI_ACP_AWVALID),
@@ -312,24 +256,13 @@ module xillybus(GPIO_LED, quiesce, MIO, PS_SRSTB, PS_CLK, PS_PORB, DDR_Clk,
     .M_AXI_ACP_AWBURST_w(M_AXI_ACP_AWBURST), .user_w_write_patch_32_open_w(user_w_write_patch_32_open),
     .M_AXI_ACP_AWPROT_w(M_AXI_ACP_AWPROT), .M_AXI_ACP_AWCACHE_w(M_AXI_ACP_AWCACHE),
     .M_AXI_ACP_WREADY_w(M_AXI_ACP_WREADY), .M_AXI_ACP_WVALID_w(M_AXI_ACP_WVALID),
-    .user_r_read_8_rden_w(user_r_read_8_rden), .user_r_read_8_data_w(user_r_read_8_data),
-    .user_r_read_8_empty_w(user_r_read_8_empty), .user_r_read_8_eof_w(user_r_read_8_eof),
-    .user_r_read_8_open_w(user_r_read_8_open), .M_AXI_ACP_WDATA_w(M_AXI_ACP_WDATA),
-    .M_AXI_ACP_WSTRB_w(M_AXI_ACP_WSTRB), .M_AXI_ACP_WLAST_w(M_AXI_ACP_WLAST),
-    .M_AXI_ACP_BREADY_w(M_AXI_ACP_BREADY), .M_AXI_ACP_BVALID_w(M_AXI_ACP_BVALID),
-    .M_AXI_ACP_BRESP_w(M_AXI_ACP_BRESP), .host_interrupt_w(host_interrupt),
-    .user_w_write_8_wren_w(user_w_write_8_wren), .user_w_write_8_data_w(user_w_write_8_data),
-    .user_w_write_8_full_w(user_w_write_8_full), .user_w_write_8_open_w(user_w_write_8_open),
-    .user_r_mem_8_rden_w(user_r_mem_8_rden), .user_r_mem_8_data_w(user_r_mem_8_data),
-    .user_r_mem_8_empty_w(user_r_mem_8_empty), .user_r_mem_8_eof_w(user_r_mem_8_eof),
-    .user_r_mem_8_open_w(user_r_mem_8_open), .user_w_mem_8_wren_w(user_w_mem_8_wren),
-    .user_w_mem_8_data_w(user_w_mem_8_data), .user_w_mem_8_full_w(user_w_mem_8_full),
-    .user_w_mem_8_open_w(user_w_mem_8_open), .user_mem_8_addr_w(user_mem_8_addr),
-    .user_mem_8_addr_update_w(user_mem_8_addr_update),
-    .user_r_audio_rden_w(user_r_audio_rden), .user_r_audio_data_w(user_r_audio_data),
-    .user_r_audio_empty_w(user_r_audio_empty), .user_r_audio_eof_w(user_r_audio_eof),
-    .user_r_audio_open_w(user_r_audio_open), .user_w_audio_wren_w(user_w_audio_wren),
-    .user_w_audio_data_w(user_w_audio_data), .user_w_audio_full_w(user_w_audio_full),
-    .user_w_audio_open_w(user_w_audio_open));
+    .user_w_write_kernel_32_wren_w(user_w_write_kernel_32_wren),
+    .user_w_write_kernel_32_data_w(user_w_write_kernel_32_data),
+    .user_w_write_kernel_32_full_w(user_w_write_kernel_32_full),
+    .user_w_write_kernel_32_open_w(user_w_write_kernel_32_open),
+    .M_AXI_ACP_WDATA_w(M_AXI_ACP_WDATA), .M_AXI_ACP_WSTRB_w(M_AXI_ACP_WSTRB),
+    .M_AXI_ACP_WLAST_w(M_AXI_ACP_WLAST), .M_AXI_ACP_BREADY_w(M_AXI_ACP_BREADY),
+    .M_AXI_ACP_BVALID_w(M_AXI_ACP_BVALID), .M_AXI_ACP_BRESP_w(M_AXI_ACP_BRESP),
+    .host_interrupt_w(host_interrupt));
 
 endmodule
