@@ -10,7 +10,6 @@ entity patch_mult is
         clk : in std_logic;
         rst : in std_logic;
     
-        --start : in std_logic;
         valid_i : in std_logic;
         valid_o : out std_logic;
         stall_i : in std_logic;
@@ -99,13 +98,22 @@ begin
         end if;
     end process;
 
-    process(summation_cnt, summation_reg, stall_i)
+    process(summation_cnt, summation_reg)--, stall_i)
     begin
         if summation_cnt = to_unsigned(0, 7) then
             summand_B <= (others => '0');
-            en <= not stall_i; --stall only if output would be ready and stall_i is true
+            --en <= not stall_i; --stall only if output would be ready and stall_i is true
         else
             summand_B <= summation_reg;
+            --en <= '1';
+        end if;
+    end process;
+
+    process(valid_int, summation_reg, stall_i)
+    begin
+        if valid_int = '1' then
+            en <= not stall_i; --stall only if output would be ready and stall_i is true
+        else
             en <= '1';
         end if;
     end process;
