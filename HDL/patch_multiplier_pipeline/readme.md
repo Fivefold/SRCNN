@@ -22,11 +22,6 @@ Replace the files
 
 in the demo project with the files from this repository _( ./xillinux-eval-zedboard-2.0c/* )_.
 
-You also have to add the design files of our project to the /vhdl/src folder:
-  - int32_add.vhdl
-  - fp6_26_mult.vhdl
-  - patch_mult.vhdl
-
 __Now you can skip the next steps__ and directly __jump to [Step 6](##Step6:-Execute-TCL-script-of-xillydemo)__.
 
 ---
@@ -74,6 +69,11 @@ Follow the Xillybus Getting-Started guide section 3.3.4:
 - Open Vivado
 - Select Tools > Run Tcl Script...
 - Select the script "xillydemo-vivado.tcl" in the /vhdl directory of the xillydemo.
+
+---
+
+## Step7: When the Vivado project has been created
+- Add the design sources in the ./srcnn folder.
 
 ---
 
