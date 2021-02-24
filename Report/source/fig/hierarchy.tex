@@ -1,0 +1,50 @@
+\documentclass[tikz,border=5pt]{standalone}
+\usepackage{forest}
+\usetikzlibrary{arrows.meta, shapes.geometric}
+
+\colorlet{linecol}{black}
+
+\begin{document}
+\pgfkeys{/forest,
+  physical/.append style = {edge path={\noexpand\path[color=linecol, dashed, rounded corners=5pt,
+          line width=1pt, -, \forestoption{edge}]
+          (!u.parent anchor) -| +(0,-7pt) -|
+          (.child anchor)\forestoption{edge label};}}
+          }
+\begin{forest}
+  for tree={
+      line width=0.8pt,
+      %minimum width=15em,
+      draw=linecol,
+      anchor=west,
+      child anchor=west,
+      parent anchor=east,
+      grow'=east,
+      align=center,
+      l sep+=10.0pt,
+      rectangle, rounded corners = 2pt,
+      edge path={
+        \noexpand\path[color=linecol, rounded corners=5pt,
+          >={Stealth[length=10pt]}, line width=0.8pt, -, \forestoption{edge}]
+          (!u.parent anchor) -| +(10pt,0) -- +(10pt,0) |- (.child anchor)\forestoption{edge label};
+        },
+  }
+  [, draw=none, phantom
+  [Jakob Essbüchl
+  	[\textit{Team leader / Organisation}, line width=0.6pt, double]
+	[Communication FPGA-User, calign with current]
+	[Documentation]
+  ]
+  [Philipp Lehninger
+  	[VHDL Code]
+	[Maths]
+  ]
+  [Benedikt Morgenbesser
+  	[Testing]
+	[Validation]
+	[Research]
+  ]
+  ]
+\end{forest}
+
+\end{document}

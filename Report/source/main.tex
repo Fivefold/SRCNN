@@ -1,0 +1,854 @@
+\documentclass[
+			fontsize = 12pt,
+			paper = a4
+			]
+			{scrartcl}%koma-klasse
+\addtokomafont{disposition}{\rmfamily}
+\usepackage[
+    backend=biber,
+    citestyle=numeric,
+    sortcites=true,
+    natbib=true,
+    url=false, 
+    doi=true,
+    eprint=false
+]{biblatex}
+\addbibresource{bibliography.bib}
+\usepackage[subpreambles=true]{standalone} % Um das LaTeX-Dokument in mehrere Dateien zu trennen
+\usepackage[british]{babel}%silbentrennung und benennungen
+\usepackage[T1]{fontenc}%umlaute als eigene zeichen, macht silbentrennung und suche bei umlauten erst möglich
+\usepackage{csquotes}
+\usepackage{lmodern}%schriftartpaket. schöne sans serif schrift.
+\usepackage{microtype} %typografieverbesserungen
+\usepackage[per-mode=symbol]{siunitx}
+\usepackage{textcomp} % Um Probleme zwischen sinunitx & microtype zu richten
+\usepackage{isotope}
+\usepackage{chemformula}
+\usepackage{booktabs} % bessere Tabellen
+\usepackage{tablefootnote}
+\usepackage{multirow}
+\usepackage{afterpage} % zum Einfügen von Leerseiten
+\usepackage{amsmath} 
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage[defaultlines=3,all]{nowidow} % widows und orphans verhindern
+\usepackage{refstyle} %für unterschiedliche Referenzenstile
+\usepackage{varioref} 
+\usepackage[hidelinks]{hyperref}%zum schluss, macht hyperlinks in das pdf, hidelinks entfernt farbige Rahmen
+\usepackage{cleveref}
+\usepackage{caption}
+\usepackage{subcaption} %Abbildungsbeschriftungen nebeneinander
+\usepackage{tabularx}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}m{#1}}
+\usepackage{multirow}
+
+\usepackage{pdflscape}
+\usepackage{floatrow}
+\usepackage{vcell}
+
+
+%	TikZ -- TikZ ist kein Zeichenprogramm
+\usepackage{tikz}
+\usepackage{tikz-timing}
+\usepackage{etoolbox}
+\usetikzlibrary{mindmap}
+\usetikzlibrary{shapes}
+\usetikzlibrary{arrows}
+\usetikzlibrary{decorations}
+\usetikzlibrary{shapes.symbols}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{shapes.multipart}
+\usetikzlibrary{positioning}
+\usetikzlibrary{patterns}
+\usetikzlibrary{calc}
+\usetikzlibrary{scopes}         % cf. pgfmanual p.66
+\usetikzlibrary{chains}         % cf. pgfmanual p.284
+\usetikzlibrary{fit}
+\usetikzlibrary{matrix}
+\usetikzlibrary{decorations}
+\usetikzlibrary{circuits.logic}
+\usetikzlibrary{circuits.logic.IEC}
+\usetikzlibrary{shapes.gates.logic.IEC}
+\usetikzlibrary{circuits.logic.US}
+\usetikzlibrary{shapes.gates.logic.US}
+\usetikzlibrary{circuits.ee}
+\usetikzlibrary{circuits.ee.IEC}
+\usetikzlibrary{backgrounds}
+\usetikzlibrary{automata}
+\usetikzlibrary{intersections}
+\usetikzlibrary{plotmarks}
+\usepgflibrary{fpu}
+\usetikzlibrary{decorations.pathreplacing}
+  
+\usepackage[figurename=Fig.]{caption} %Fig.: statt Figure:
+\hfuzz=1pt %ignoriere horizontalen Überstand 0-1pt und gib keine Warnung aus
+\usepackage{chngcntr} %Vertikales padding für Tabellen global
+\setlength{\parskip}{0.3cm plus0.1cm minus 0.1cm} %Vertikales padding für Absätze
+%\counterwithin{table}{section} %1.1, 1.2 usw. für Tabellen und Abbildungen
+%\counterwithin{figure}{section}
+
+\renewcommand{\arraystretch}{1,5}
+\floatsetup[subfigure]{style=plain,heightadjust=object,
+capbesideposition={left,top},capbesidesep=space}
+\newcommand{\?}{\ensuremath{^\texttt{\textbf [CITATION~NEEDED]}}}
+\newcommand\blankpage{%
+    \null
+    \thispagestyle{empty}%
+    \addtocounter{page}{-1}%
+    \newpage}
+
+\setcounter{tocdepth}{2} %remove subsubsection from table of content
+
+%hier werden die pdf-infos gesetzt
+\hypersetup{pdfinfo={
+Title={FPGA-Accelerated Image Super Resolution Convolutional Neural Network},
+Author={Jakob Essbüchl, Philipp Lehninger, Benedikt Morgenbesser}
+}}
+
+% -----------------------------------------------------------------
+
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+
+%%
+% title block
+%%
+\vspace*{1.5cm}
+\huge
+\textsc{{FPGA-Accelerated Image Super Resolution Convolutional Neural Network}}\\
+\vspace*{1cm}
+
+%%
+% author block
+%%
+\vspace{2cm}
+\Large
+\textsc{Report}\\
+{\normalsize \textsc{by}}\\
+\textsc{Jakob Essbüchl} {\normalsize \textsc{01129145}}\\
+\textsc{Philipp Lehninger} {\normalsize \textsc{01327039}}\\
+\textsc{Benedikt Morgenbesser} {\normalsize \textsc{01027440}}\\
+
+
+
+
+
+%%
+% hand-over block
+%%
+\vspace{6.5cm}
+\textsc{\today}\\ 
+
+
+%%
+% university block
+%%
+\vspace{1cm}
+\textsc{Vienna University of Technology}\\
+{\normalsize \textsc{Institute of Computer Technology}}\\
+
+\end{center}
+%\afterpage{\blankpage}
+\end{titlepage}
+\clearpage
+
+
+
+\section*{Abstract}
+\setcounter{page}{1}
+\pagenumbering{Roman}
+
+This project is part of the course System on Chip Design Lab at the Technical University of Vienna. The defined goal was to implement a convolutional neural network (CNN) as a form of digital signal processor (DSP) on a field-programmable gate array (FPGA). After this, a second DSP utilising approximate computing should be designed and both designs should be compared.
+
+
+The neural network implements a Super Resolution (SR) algorithm for upscaling images. The chosen algorithm is simply called \emph{Super Resolution Convolutional Neural Network (SRCNN)} \cite{dong2015image}. To achieve the stated goal, the following was done in order:
+
+\begin{enumerate}
+    \item Implement the neural network in PyTorch to train the network and gain weights for it's nodes.
+    \item Implement the neural network in NumPy to improve understanding of the algorithm and remove PyTorch dependency. 
+    \item Implement the convolutions in C and wrap them in Python to allow acceleration on the FPGA.
+    \item Implement parts of the convolutions in the FPGA using VHDL to accelerate the upscaling operation.
+    \begin{enumerate}
+        \item One implementation works with any image size but is slower than the purely CPU-run variant without FPGA acceleration.
+        \item A second implementation is much faster than the CPU-run variant but is limited in image size.
+    \end{enumerate}
+    \item \label{enum:approxDsp} \textit{Create and implement an approximate DSP version of the neural network.}
+    \item \label{enum:approxComp} \textit{Compare both approaches (accurate and approximate) in image quality, performance, area, etc.}
+\end{enumerate}
+
+Because of time constraints \cref{enum:approxDsp,enum:approxComp} could not be completed before the deadline. Unfortunately there is an unsolved bug in the FPGA implementation that makes using larger images impossible. Before that had been solved continuing with the approximate design was not warranted.
+
+Our implementation creates images with good image quality metrics in respect to the algorithms compared in the original paper \cite{dong2015image}. In two metrics (SSIM and MSSSIM) it's the best of the compared papers while in three others (PSNR, IFC and NQM) it's in the better half.
+
+As mentioned in the roadmap one FPGA implementation was actually slower than without FPGA acceleration while the other implementation was much faster (over 22 times).
+
+\newpage
+
+\tableofcontents
+\clearpage
+
+\section{Introduction}
+\setcounter{page}{1}
+\pagenumbering{arabic}
+
+\subsection{Single Image Super-Resolution}
+\label{sec:SR}
+The aim of single image super-resolution (SR) is to recover a high-resolution (HR) image from a single low-resolution (LR) image. HR images are required in a lot of different applications. For example in medical imaging, satellite imaging, high-deﬁnition television (HDTV) etc. The problem of up-scaling images is underdetermined: For any low-resolution pixel a variety of different solutions exist. The resolution space has to be constrained to deal with that fact. To do so, prior information is needed. Approaches to get this information can be categorised in four types: prediction models, edge-based methods, image statistical methods and example-based methods. Internal example-based methods exploit the self similarity property. Exemplar patches are generated from the input image. For external example-based methods a mapping between LR \& HR patches is taught from external data-sets. The majority of SR algorithms focus on grey-scale or single-channel image super-resolution. To get a coloured image from a single-channel image SR the YCbCr colour space can be used. (See section \ref{sec:YCbCr}.) An example for single image super resolution is shown in figure \ref{fig:superres}. \cite{abd2012image}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{fig/superresolution.PNG}
+    \caption{Example for a single image super-resolution recovery}
+    \label{fig:superres}
+\end{figure}
+
+\subsection{YCbCr}
+\label{sec:YCbCr}
+In the YCbCr colour space the image is decomposed into three channels: \textit{luminance (Y), blue-difference chroma (Cb)} \& \textit{red-difference chroma (Cr)}. Figure \ref{fig:ycbcr} shows an image and the associated channels in the YCbCr colour space. The human eye is much more sensitive to changes in luminance than to changes in the chroma channels. Therefore, it is sufficient to apply super-resolution only on the luminance channel, while using computationally cheap methods like bicubic interpolation on the chroma channels to get convincing high-resolution results.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{fig/ycbcrhorizontal.png}
+    \caption{YCbCr image and channel decomposition. From left to right: Original image, Luminance (Y), Chroma blue (Cb) Chroma red (Cr).  Adapted from: \cite{wiki:ycbcr}.}
+    \label{fig:ycbcr}
+\end{figure}
+
+
+\subsection{Neural Networks}
+\label{sec:NN}
+Neural networks (NNs) are tools used for efficient optimization. NNs are structures to simulate the method of human thinking based on neurons and activation functions. These massively parallel working networks are designed, similar to the human brain, to store information in the form of patterns. NNs are well suited for image processing.
+
+\subsection{SRCNN}
+\label{sec:SRCNN}
+For image super-resolution a deep convolutional neural network (SRCNN) can be used as described in \cite{}. With this approach a direct end-to-end mapping between a low resolution input image and a high resolution output image is implemented. The only preprocessing step needed for the SRCNN is to upscale the input image to a desired size. This can be done by bicubic interpolation. Thus the \enquote{low-resolution} input image for the neural network has already the same size as the output image. In this context the terms \enquote{low- \& high-resolution} actually refer to the image quality and not the image size. The goal of the CNN is to recover an image \textbf{X} from the input image \textbf{Y} that is as similar as possible to the ground truth. (The ground truth is the ideal solution). The mapping F(\textbf{Y}) consists of three operations: \textit{Patch extraction and representation}, \textit{non-linear mapping}, and \textit{reconstruction}. These operations form the convolutional neural network as shown in figure \ref{fig:SRCNN}. The purposes of the three steps are:
+
+\begin{enumerate}
+    \item \textbf{Patch extraction and representation:} \newline Patches from the LR input image are extracted in this step. For each patch a high-dimensional vector that comprises a set of \textit{n\textsubscript{1}} feature maps is generated. For a single channel input image this layer gives a \textit{n\textsubscript{1}} channel output.
+    
+    \item \textbf{Non-linear mapping:} \newline In this layer the high-dimensional vectors from layer 1 are non-linearly mapped onto other \textit{n\textsubscript{2}}-dimensional vectors. Conceptually, each of these \textit{n\textsubscript{2}} vectors represent now a high-resolution patch. 
+    
+    \item \textbf{Reconstruction:} \newline In the last layer the final image is reconstructed from the high-resolution, patch-wise representation from layer 2. The output of this layer is the single channel, high resolution image that ideally fits the ground truth.
+\end{enumerate}
+ 
+ Although the layers comprise of apparently different operations they lead to the same form as convolutional layers. The filtering weights and biases of the CNN are subject to optimisation by training. \cite{dong2015image}. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig/srcnn.pdf}
+    \caption{Convolutional layers of the SRCNN. Source: \cite{dong2015image}.}
+    \label{fig:SRCNN}
+\end{figure}
+
+ An example for a SR image is shown in figure \ref{fig:srexample}. The right-most image is the ground truth, i.e. the ideal solution. The image on the left side was upscaled with a simple bicubic interpolation. In the centre the output of the super-resolution deep convolutianal network is shown.
+
+\begin{figure}[!hbt]
+     \centering
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{fig/examples/butterfly_GT}
+         \caption{Ground truth}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{fig/examples/butterfly_bicubic_x3}
+         \caption{Bicubic interpolation x3}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{fig/examples/butterfly_srcnn_x3}
+         \caption{SRCNN x3}
+     \end{subfigure}
+        \caption{Comparison of ground truth, bicubic interpolation and SRCNN.}
+        \label{fig:srexample}
+\end{figure}
+
+
+\newpage
+
+\section{Implementations}
+\label{sec:Implementation}
+
+Three implementations using different Python modules and sometimes different hardware were done and will be described in the following sections.
+
+All three implementations follow the same general program structure:
+
+\begin{enumerate}
+    \item Load weights \& biases
+    \item Open image
+    \item Downsize image to the closest multiple of the chosen scale factor. This becomes the \emph{ground truth image (GT)} used as a comparison with the upscaled images.
+    \item Downsize the GT image by using the chosen scale factor.
+    \item Upscale the downsized image by the chosen scale factor using bicubic interpolation. This is the \emph{bicubic interpolation image}.
+    \item Convert the image from RGB colour space to YCbCr colour space, extract the Y channel and scale the pixel values from 0-255 to 0-1.
+    \item Upscale the Y channel by the chosen scale factor using the neural network. Roughly speaking this means calculating a lot of 2D convolutions which themselves consist of a lot of multiplications and additions.
+    \item Scale the pixel values back from 0-1 to 0-255
+    \item Combine the Y channel with the Cb and Cr channels from before and save the image. This is the upscaled \emph{SRCNN image}.
+    \item Calculate the image metrics PSNR and SSIM as well as execution time.
+\end{enumerate}
+
+\subsection{PyTorch}
+\label{sec:Torch}
+For the first implementation of the SRCNN PyTorch was used. PyTorch is an open-source machine learning library that allows an easy and efficient implementation of neural networks. A key feature of PyTorch is that calculations can be accelerated using the CUDA Cores of Nvidia GPUs. However, there are two main drawbacks:
+
+First, most of the calculations when upscaling an image happen inside the functions of the PyTorch library. In this way it acts similarly to a black box. This would not allow accelerating parts of the calculations on the FPGA since there is no easy access. While possible in theory it would mean reading into and understanding the inner workings of the very complex PyTorch library.
+
+Secondly, PyTorch is a large library with a size of several GB and does not offer builds for ARM CPUs, which the ZedBoard is using. This would require building the whole library on the ZedBoard itself which would take hours due to the slow CPU and is prone to errors because of missing dependencies.
+
+In the end PyTorch was used not only as a first implementation, but also for playing around with different network sizes, training the network and extracting weights and biases to use with the other two implementations.
+
+\subsection{NumPy}
+\label{sec:Numpy}
+
+Since PyTorch is such a large library and the convolution calculations are hidden inside the library functions it wasn't feasible to use it together with FPGA acceleration. Easiest access to the FPGA hardware would be with pure C code but we wanted to keep as much of code in python as possible to make development easier and faster. 
+
+Thus, the decision was made to remove the PyTorch dependency and try to implement the convolutions in NumPy. This was both for understanding how to actually \enquote{manually} calculate the two-dimensional convolutions as well as serve as a stepping stone to the FPGA hardware. The plan was to possibly port the large amount of multiplications that the convolutions consist off over to C and go from there to the FPGA hardware.
+
+In practice it turned out that the NumPy implementation was \emph{very} slow. An image that took about 3 seconds in PyTorch took 14 minutes in NumPy (see Table~\ref{tab:exetime}). Part of this is because of for loops which are notoriously slow in Python. Of four nested for loops, two could be removed by utilising NumPy's vectorised operations. These are executed in heavily optimised C (which NumPy is mostly written in in the back-end). Two loops remained nonetheless and are probably the root cause for the slow execution time.
+
+This implementation could likely be optimised much further, but since we needed to switch to C anyway we decided to leave it as is.
+
+\subsection{Cython}
+\label{sec:cython}
+
+The Cython implementation is a direct derivative of the NumPy implementation. The 2D convolutions were completely rewritten in C while NumPy was kept for type conversions and scaling of pixel values prior to and after the convolutions. The convolutions are imported into the python code as an external library using the ctypes module.
+
+All of the convolution operations as well as weights and biases were converted from 32-bit floating point number format to 32-bit Q6.26 fixed-point integer format. This was done because it's much easier to implement fixed-point arithmetic in the FPGA compared to floating point arithmetic. Also, with pixel values originally having 256 possible values between 0 and 255, there is not much dynamic range needed, making a fixed-point implementation a good fit.
+
+The Cython implementation has three sub-implementations:
+
+\begin{enumerate}
+    \item All calculations run on the CPU, single-threaded
+    \item 2D Convolutions run on the FPGA, the rest runs on the CPU. Works with any image size but is slow (referred to as FPGA1)
+    \item Several improvements upon 2. Only works with images up to a certain size but is much faster (referred to as FPGA2)
+\end{enumerate}
+
+These will be described in detail in the following section.
+
+Both implementations with HDL designs on the FPGA fill the streams to the FPGA concurrently with child processes.
+
+\subsection{FPGA Implementations}
+\label{sec:fpgaimpl}
+
+\subsubsection{Number Representation}
+
+The data written to and read from the design on the FPGA is in the 32-bit Q6.26 fixed point format. This means that the last 26 bits are fractal digits whereas the highest 6 bits represent an integer. Note that the MSB is a sign bit, negative values are expressed in two's complement.
+
+The C code accessing the hardware and the pure software implementation (Cython) also use this number representation, the Python script converts all floating point numbers to 32-bit Q6.26 fixed point representations.
+
+\subsubsection{General Overview}
+
+The core task of the hardware design is to apply a kernel multiplication to a selected image/feature patch.
+Therefore, the patch and kernel data pairs have to be acquired concurrently via two separate streams.
+
+The kernel multiplication multiplies each kernel value with its corresponding value from the patch, the results are accumulated to one pixel value.
+For example, the kernel multiplication of a 5x5 kernel (kernel size 5) with a 5x5 patch will execute 25 fixed point multiplications, add the products up and yield one fixed point number.
+This behaviour is described in the VHDL file \emph{patch\_mult.vhdl}.
+
+The main difference between the two HDL implementations is,
+that the \emph{patch\_mul\allowbreak ti\allowbreak plier\_pipe\allowbreak line}, also referred to as \enquote{FPGA Implementation 1}, just performs this kernel multiplication, however, the second HDL design (\emph{fea\allowbreak ture\_convo\allowbreak lution\_pipe\allowbreak line}, \enquote{FPGA Implementation 2}), also has to do the patch selection and the padding at the edges of the feature/image.
+
+\subsubsection{FPGA Implementation 1}
+\label{sec:fpgaimpl1}
+
+The first FPGA implementation reads patch and kernel data from two separate FIFOs which are filled by two separate asynchronous Xillybus streams (xillybus\_write\_patch\_32 and xillybus\_write\_kernel\_32).
+As the basic Xillybus IP core, that is contained in the basic xillydemo project has only one 32-bit write stream (downstream, CPU to FPGA), a custom Xillybus IP Core had to be generated.
+
+The relevant interfaces of this custom IP core are:
+\begin{itemize}
+  \item xillybus\_write\_patch\_32: 32-bit asynchronous stream for patch data
+  \item xillybus\_write\_kernel\_32: 32-bit asynchronous stream for kernel data
+  \item xillybus\_read\_32: 32-bit asynchronous stream reading back the results
+\end{itemize}
+
+The multiplier has been generated via the Vivado IP Catalog.
+It has two pipeline stages and a Clock-Enable pin for stall functionality.
+This IP Core is configured to use the integrated multipliers on the FPGA instead of LUTs.
+A combinatorial adder and a register form the accumulator and therefore the third pipeline stage of the \emph{patch\_mult} entity.
+The output is ready, when a counter has counted through all kernel entries.
+
+The result of the kernel multiplications is written into a FIFO that is connected to the output stream.
+All three FIFOs are single-clock non-FWFT (First Word Fall Through) 32-bit FIFOS with a depth of 512 values.
+
+\subsubsection{FPGA Implementation 2}
+\label{sec:fpgaimpl2}
+
+The second implementation contains several improvements.
+At first, a new custom Xillybus IP core has been generated:
+\begin{itemize}
+  \item xillybus\_config: 32-bit synchronous stream for storing config data
+  \item xillybus\_command: 8-bit synchronous stream for control flow commands
+  \item xillybus\_write\_feature\_32: 32-bit asynchronous stream for feature data
+  \item xillybus\_write\_kernel\_32: 32-bit asynchronous stream for kernel data
+  \item xillybus\_read\_32: 32-bit asynchronous stream reading back the results
+\end{itemize}
+
+The config stream allows to set the height and width of the image, which is a requirement to be able to write a whole feature instead of patches to the FPGA logic. This is necessary because the logic design has to iterate through all pixel positions of a feature and do the patch extraction by itself.
+Moreover, the kernel size is not a VHDL generic anymore but can also be set via the config stream.
+
+The feature and kernel data is still acquired via two separate asynchronous streams, however, the data is not written into FIFOs but into BRAM.
+For the patch extraction and padding logic the data has to be addressable and accessible multiple times.
+Counters calculate the addresses and check if a whole feature and kernel have been written. When all necessary data is present, the convolution of this one feature can start.
+As for padding the read addresses of the feature RAM have to be altered and multiplications in address calculations have to be avoided in general, so the address calculation is non-trivial and surely the most complex part of this hardware implementation.
+
+The patch extraction logic will yield a value of a patch and its corresponding kernel value from the memory and pass these two values to the \emph{patch\_mult} entity from the first implementation.
+The results will again be written into an output FIFO.
+
+These changes promise a faster execution but also lead to new limitations: 
+\begin{itemize}
+  \item memory capacities limit the maximum size of features and kernels
+  \item data flow is more sporadic, DMA buffers have to be flushed regularly
+  \item synchronization of hardware accesses gets a bit more complicated
+\end{itemize}
+
+To enable to send control commands to the hardware the synchronous 8-bit command stream has been added to the Xillybus IP core.
+In the current implementation it has been used to skip feature re-transmissions.
+Thereby, the loops for output and input channels can be interchanged in the software and each feature has to be sent only once.
+The idea was, that the software can send a skip command instead of re-sending the whole feature.
+
+However, this functionality still has synchronisation problems and the resulting images are damaged (refer to Section~\ref{sec:bug} for details).
+
+\newpage
+\section{Development platform}
+\label{sec:fpga}
+
+\subsection{ZedBoard}
+\label{sec:zedboard}
+For this project a ZedBoard development board was used. It includes the Zynq\textregistered-7000 All Programmable SoC with a programmable logic and an ARM\textregistered-based processing system. The Ethernet port was used for communication via SSH. The SD card includes the boot files and the Linux file-system of the embedded Xillinux. A photo of the board is shown in figure \ref{fig:zedboard}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{fig/ZedBoard.png}
+    \caption{The ZedBoard development board.  Source: \cite{zedboard}.}
+    \label{fig:zedboard}
+\end{figure}
+
+
+\subsection{Xillinux}
+\label{sec:xillinux}
+Xillinux is a Linux distribution for different FPGA boards including the ZedBoard. It is based upon Ubuntu LTS 16.04 for ARM. The embedded OS uses the SD card as hard disk and supports plug \& play for various devices, like a USB mouse or keyboard. Xillinux also provides a graphical user interface. A computer screen can be connected via VGA or HDMI. The relevant software can be downloaded from: \hyperlink{http://xillybus.com/xillinux}{http://xillybus.com/xillinux}. It includes an SD card image for the operating system and a boot partition kit. An introduction on how to build Xillinux (generate bitstream, load SD image..) is given in the \hyperlink{http://xillybus.com/downloads/doc/xillybus_getting_started_zynq.pdf}{Getting started with Xillinux for Zynq-7000} document.
+
+\newpage
+
+\subsection{Xillybus IP}
+\label{sec:xilibusip}
+For the data transport between Xillinux and the FPGA Xillybus IP cores were used. Xillybus consists of an FPGA IP core and a Linux driver. Xillybus uses direct memory access (DMA) and the AXI bus. The communication between the user application and the IP core happens through standard FIFO's and BRAM. A custom Xillybus IP core can be configured in the \hyperlink{http://xillybus.com/ipfactory/}{IP core factory}. A simplified block diagram for the Xillybus IP core is shown in figure \ref{fig:xillibus}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig/xillybus.png}
+    \caption{Simplified block diagram for the Xillybus IP core. Adapted from: \cite{xillibus}.}
+    \label{fig:xillibus}
+\end{figure}
+
+ Note: Xillinux and Xillybus have several license variants. A no-fee educational license is granted for student projects. The free license is only applicable, if no commercial interest is followed.
+
+\newpage
+
+
+
+\section{Evaluation - Image Quality}
+\label{sec:imqual}
+
+For the evaluation of the quality of the upscaled image, the result has to be compared with the ground truth. The ground truth is the ideal solution. For a real world usage scenario the ground truth is naturally not known. To evaluate the performance of the algorithm, the original image is sampled down. The LR image is then used as input. The original image acts as ground truth and can be compared with the output image. Both scenarios are illustrated in figure \ref{fig:gt}. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{fig/comparison}
+    \caption{Left: Real world usage scenario. An input image is fed to the network and upscaled.  Right: The original image acts as ground truth. The image is scaled down and up again.}
+    \label{fig:gt}
+\end{figure}
+
+\subsection{Metrics}
+\label{sec:metrics}
+ There are different metrics to evaluate the difference between ground truth and output image. The two most important metrics are PSNR and SSIM. The approaches are described in section \ref{sec:PSNR} \& \ref{sec:ssim}. Other metrics used to evaluate the image quality are discussed in section \ref{sec:othermetrics}.
+
+\subsubsection{PSNR}
+\label{sec:PSNR}
+
+The peak signal to noise ratio (PSNR) between two images can be used as a straightforward image quality measure. The ratio in dB can be computed using equation \ref{eq:PSNR}. 
+\begin{equation}
+    PSNR = 10 \cdot log_{10}\Big(\frac{R^2}{MSE}\Big)
+    \label{eq:PSNR}
+\end{equation}\newline
+ $R$ is the maximum fluctuation of the input image data type. Hence, for a pixel value between 0 and 255 $R = 255$. $MSE$ is the mean squared error between the ground truth and the output image. For $M$ rows and $N$ columns the $MSE$ can be calculated as seen in equation \ref{eq:MSE}.
+
+\begin{equation}
+    MSE = \frac{\sum_{M,N}[I_1(m,n)-I_2(m,n)]^2}{M \cdot N}
+    \label{eq:MSE}
+\end{equation}
+
+ Colour images are usually converted to the YCbCr space and the PSNR is calculated for the luminance channel. (See section \ref{fig:ycbcr}). Naturally, a high PSNR is desired. \cite{PSNR}
+
+\subsubsection{SSIM}
+\label{sec:ssim}
+The structural similarity index (SSIM) was developed as an improved image quality measure. While the PSNR calculates the absolute deviation between two images, SSIM is a method that also takes the human perception into account. The SSIM combines three components, a luminance comparison ($l$), a contrast comparison ($c$) and a structure comparison ($s$). (see equation \ref{eq:components}). The relative importance of the terms can be set with the parameters: $\alpha,\,\beta\,\&\,\gamma$. The variables $x\,\&\,y$ refer to the two images.
+
+\begin{equation}
+    SSIM(x,y) = [l(x,y)]^\alpha \cdot [c(x,y)]^\beta \cdot [s(x,y)]^\gamma
+    \label{eq:components}
+\end{equation}
+
+ In \cite{ssim} the formula for the structural similarity index is derived to equation \ref{eq:ssim}. With the average value $\mu$ and the variance $\sigma$ of the images. The coefficients $C_1\,\&\,C_2$ serve as stabiliser for a small denominator. 
+
+\begin{equation}
+    SSIM(x,y) = \frac{(2\mu_x\mu_y + C_1)(2\sigma_{xy} + C_2)}{(\mu_x^2 + \mu_y^2 + C_1)(\sigma_x^2+\sigma_y^2+C_2)}
+    \label{eq:ssim}
+\end{equation}
+
+ The structural similarity index ranges from 0 to 1. A SSIM of 1 implies two identical images, a SSIM of 0 two complete different ones. \cite{ssim}
+
+\subsubsection{Other Metrics}
+\label{sec:othermetrics}
+
+Other metrics used to compare the image quality are MSSSIM, IFC \& NQM. 
+\begin{enumerate}
+    \item The multi-scale structural similarity index (MSSSIM) is a more advanced form of the structural similarity index. The method incorporates details of the image at different resolutions. The image is therefore iteratively low-pass filtered and downsampled. The MSSSIM index is a combination of the measures at these different scales. The optimal coincidence is given by a MSSSIM index of 1. \cite{MSSSIM}
+    \item The information fidelity criterion (IFC) analyses the image fidelity in an information-theoretical framework. The mutual information between the input (ground truth) and the output (upscaled image) is quantified statistically. A higher score indicates a better similarity. \cite{IFC}
+    \item The noise quality measure (NQM) takes variation in contrast sensitivity, variation in the local luminance mean, contrast interaction between spatial frequencies and contrast masking effects into account. The NQM assesses additive noise in images. It is given in dB. \cite{NQM}
+\end{enumerate}
+
+\subsection{Results}
+\label{sec:imqualresults}
+Table \ref{tab:qualresults} compares the different metrics for the image quality of our SRCNN implementation, with the one from \cite{dong2015image}, the bicubic interpolation and various other image enhancing algorithms. These are:
+\begin{enumerate}
+    \item \textit{SC} - sparse coding based method \cite{SC},
+    \item \textit{NE+LLE} - neighbour embedding + locally linear embedding method \cite{NELLE},
+    \item \textit{KK} - A method developed by Kim, K.I. and Kwon, Y. \cite{KK},
+    \item \textit{ANR} - Anchored Neighbourhood Regression method \cite{ANR}, and
+    \item \textit{A+} - Adjusted Anchored Neighbourhood Regression method \cite{A+}.
+\end{enumerate}
+
+The values in table \ref{tab:qualresults} are the average values for the images from the Set5 dataset. The set of images is attached in Appendix \ref{Appendix:set5}, the individual scores are listed in Appendix \ref{Appendix:tables}. For IFC \& NQM the A+ algorithm shows the best results. The SRCNN implementation by Dong shows the best PSNR. Our implementation of the SRCNN achieves the best index for SSIM. For MSSSIM these three approaches share the highest achieved score. The relative improvement of the SRCNN compared to a bicubic interpolation is shown in table \ref{tab:improvement}. 
+
+The results confirm the qualitative impression that the algorithm performs in particular well with images with sharp edges as it is the case in the \enquote{butterfly.bmp} (figure \ref{fig:set5imagesI}) image. For images that consist mostly of lightly textured surfaces like the \enquote{baby.bmp} (figure \ref{fig:set5imagesII}) the improvement is smaller. 
+
+
+\begin{table}
+\centering
+\caption{The average results of PSNR (dB), SSIM, IFC, NQM (dB), and MSSSIM on the Set5 dataset.}
+\label{tab:qualresults}
+\begin{tabular}{lcccccccc} 
+\toprule
+\begin{tabular}[c]{@{}c@{}}Metric\\\,\end{tabular} & \begin{tabular}[c]{@{}c@{}}Bicubic\\\,\end{tabular} & \begin{tabular}[c]{@{}c@{}}SC\\\cite{SC}\end{tabular} & \begin{tabular}[c]{@{}c@{}}NE+LLE\\\cite{NELLE}\end{tabular} & \begin{tabular}[c]{@{}c@{}}KK\\\cite{KK}\end{tabular} & \begin{tabular}[c]{@{}c@{}}ANR\\\cite{ANR}\end{tabular} & \begin{tabular}[c]{@{}c@{}}A+\\\cite{A+}\end{tabular} & \begin{tabular}[c]{@{}c@{}}SRCNN\\(Dong) \cite{dong2015image}\end{tabular} & \begin{tabular}[c]{@{}c@{}}SRCNN\\(Ours)\end{tabular}  \\ 
+\hline
+PSNR & 29.56 & 31.42 & 31.84 & 32.28 & 31.92 & 32.59 & \textbf{32.75} & 31.92\\
+SSIM & 0.871 & 0.882 & 0.896 & 0.903 & 0.897 & 0.909 & 0.909 & \textbf{0.913}\\
+IFC & 3.49 & 3.16 & 4.40 & 4.14 & 4.52 & \textbf{4.84} & 4.58 & 4.41\\
+NQM & 27.93 & 27.29 & 32.77 & 32.10 & 33.10 & \textbf{34.48} & 33.21 & 33.04\\
+MSSSIM & 0.975 & 0.980 & 0.984 & 0.985 & 0.984 & \textbf{0.987} & \textbf{0.987} & \textbf{0.987}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}
+\centering
+\caption{Relative improvement of image quality metrics between SRCNN and bicubic interpolation.}
+\label{tab:improvement}
+\begin{tabular}{lccccc} 
+\toprule
+Metric  & baby.bmp & bird.bmp & butterfly.bmp & head.bmp & woman.bmp  \\ 
+\hline
+PSNR    & 39\,\%      & 88\,\%      & 149\,\%          & 25\,\%      & 86\,\%       \\
+SSIM    & 2\,\%      & 3\,\%      & 11\,\%          & 3\,\%      & 5\,\%        \\
+IFC     & 15\,\%     & 25\,\%     & 46\,\%          & 16\,\%     & 29\,\%       \\
+NQM     & -3\,\%      & 343\,\%     & 412\,\%          & 257\,\%     & 361\,\%       \\
+MSSSIM  & 0.7\,\%    & 0.9\,\%    & 2.1\,\%         & 0.9\,\%    & 1.3\,\%      \\ 
+\hline
+Average & 11\,\%      & 92\,\%     & 124\,\%          & 60\,\%      & 97\,\%       \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+
+\section{Evaluation - Execution Time}
+Besides the image quality, the execution time was also investigated. The different implementations of the SRCNN are compared in table \ref{tab:exetime}. The measurement of the execution time is done in Python. The basis for the execution times are the original (\enquote{butterfly.bmp}) image from the Set5 dataset (256\,x\,256\,px size) and smaller version (99\,x\,99\,px size) of the same image.
+
+\subsection{Results}
+Table \ref{tab:exetime} shows execution time for the different implementations of the SRCNN for the two image sizes. A visualization of this data is shown in figure \ref{fig.exectime}. As expected, the PyTorch-based algorithm shows the best performance. This is because calculations are accelerated on the GPU. PyTorch is an optimised library and the utilised hardware is much faster than the one on the ZedBoard. The second fastest execution time is achieved by the FPGA2 implementation which shows the acceleration potential of specialised hardware. It is over 22 times faster than the pure CPU variant running on the ZedBoard.
+
+Even with the strong desktop hardware, the NumPy implementation is very slow (up to 350 times slower than GPU-accelerated PyTorch and up to 33 times slower than the purely CPU-using C variant). This is due to the inefficient implementation and could be vastly improved, as discussed in section~\ref{sec:Numpy}.
+
+Implementations with very short execution times (PyTorch and Cython on the desktop CPU) show very little difference in execution times between image sizes. This is because of (mostly) static set up times. The program does not only measure the time the 2D convolutions take but also all of the prior and subsequent actions of the program. These change very little to not at all between image sizes and implementations.
+
+
+\clearpage
+
+\begin{table}[H]
+\centering
+\caption{Execution times for a 256\,x\,256\,px \& a 99\,x\,99\,px image \enquote{butterfly.bmp}.\vspace{2mm}\\
+The FPGA2 implementation does not have an execution time for the 256\,x\,256\,px sized image because of an unsolved bug with larger images. For details on this bug see section~\ref{sec:bug}.}
+\label{tab:exetime}
+\begin{tabular}{llcccc} 
+\toprule
+ & & \multicolumn{4}{c}{Execution time} \\ 
+ & & \multicolumn{2}{c}{256\,x\,256\,px} & \multicolumn{2}{c}{99\,x\,99\,px} \\\cmidrule(r){3-4} \cmidrule(){5-6}
+ Implementation & Device & s & min & s & min \\ 
+\midrule
+PyTorch (CPU \& GPU) & Desktop\tablefootnote{CPU: Intel Core i5-8400 2.80GHz GPU: Nvidia Geforce GTX 1070TI} & 2.64 & 0.04 & 2.43 & 0.04 \\
+NumPy (CPU) & Desktop & 924 & 14.4 & 559 & 9.3 \\
+Cython (CPU) & Desktop & 29 & 0.5 & 17 & 0.3 \\
+Cython (CPU) & ZedBoard\tablefootnote{CPU: Zynq-7000 SoC XC7Z020-CLG484-1; Dual ARM Cortex-A9 MPCore 667 MHz} & 631 & 10.5 & 195 & 3.2 \\
+Cython (FPGA 1) & ZedBoard & 1413 & 23.6 & 227 & 3.8 \\
+Cython (FPGA 2) & ZedBoard & N/A & N/A & 8.67 & 0.14 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+	\centering
+	\includestandalone[scale=1]{fig/execTimesChart}
+	\caption{Visualization of the execution times in seconds of table~\ref{tab:exetime}.}
+	\label{fig.exectime}
+\end{figure}
+
+\newpage
+\section{Evaluation - Space}
+
+
+\begin{table}[H]
+\centering
+\caption{Resource utilization of the FPGA for FPGA implementation 1 \& 2.}
+\label{tab:util}
+\begin{tabular}{lrrSrS} 
+\toprule
+ & \multicolumn{1}{l}{} & \multicolumn{2}{c}{FPGA1} & \multicolumn{2}{c}{FPGA2} \\ 
+\cmidrule(r){3-4}\cmidrule(){5-6}
+Resource & Available & \multicolumn{1}{l}{Utilization} & \% & \multicolumn{1}{l}{Utilization} & \% \\
+\midrule
+LUT     & 53200     & 3484  & 6.6   & 4233  & 8.0 \\
+LUTRAM  & 17400     & 271   & 1.6   & 233   & 1.3 \\
+FF      & 106400    & 3927  & 3.7   & 4191  & 3.9 \\
+BRAM    & 140       & 4     & 2.9   & 100  & 71.1 \\
+DSP     & 220       & 4     & 1.8   & 4     & 1.8 \\
+IO      & 200       & 81    & 40.5  & 81    & 40.5 \\
+BUFG    & 32        & 2     & 6.3   & 2     & 6.3 \\
+PLL     & 4         & 1     & 25.0  & 1     & 25.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+	\centering
+	\includestandalone[scale=1]{fig/spaceChart}
+	\caption{Visualization of the resource utilization of the FPGA in \% of available space.}
+	\label{fig.util}
+\end{figure}
+
+\clearpage
+
+\section{Discussion}
+
+\subsection{Image Quality}
+As seen in table \ref{tab:qualresults} our implementation of the SRCNN shows good results with regard to the quality of the upscaled image. The implementation achieves the highest score for two of the five metrics, SSIM and MSSIM (for a detailed look refer to section~\ref{sec:imqual}. The algorithm is particularly suitable for images with hard edges. With textured surfaces it only gets a small qualitative improvement over bicubic interpolation. To achieve better results in this area, a larger and much more complex neural network would be needed.
+
+The largest relative improvement compared to bicubic interpolation is achieved for the butterfly image (see table \ref{tab:improvement}). The butterfly (see figure \ref{fig:set5imagesI}) has a lot of sharp edges which suits the algorithm. The improvement is less visible for example for the image of the baby (see figure \ref{fig:set5imagesII}), an image where the relatively untextured skin dominates. The lack of edges and structure naturally results in a lack of features for the algorithm.
+
+\subsection{Thoughts on Parallelization}
+
+The idea to accelerate the image convolution with a large amount of hardware multipliers soon turned out to be very difficult to implement. The main problem is that the data arrives sequentially on the FPGA design, therefore the design tends to be pipelined but not fully parallel.
+Multi-port RAM would allow to partially parallelize the design, but eventually only dual-port RAM could be implemented with the on-chip BRAM.\\
+It is possible to get more ports if some identical RAM blocks are mirrored, but this multiplies the amount of used BRAM and the limitation on the maximum achievable image sizes is hard enough.
+As all multiplications of a kernel multiplication have to be accumulated, the accumulator would become the bottleneck. A tree of adders, like a \emph{Wallace Tree Adder} \cite{sharma2016design}, would be a possibility to optimise such a design, so that it could make use of parallel multiplications.
+
+With the use of dual-port BRAM, the throughput of the HDL design could theoretically be nearly doubled, however, it has to be considered that also the complexity of the patch extraction and padding logic would increase significantly.
+
+\newpage
+\subsection{Thoughts on Approximation}
+
+As the second FPGA implementation has been added at a very late stage of this project and still has some bugs, approximation of the multiplier or the accumulator has not been considered anymore.
+
+The whole design runs with the 100 MHz bus\_clk of the Xillybus IP core.
+Therefore, a speed-up of either of those logic blocks would only be interesting, if clock cycles / pipeline stages could be saved, but not in order to increase the possible maximum clock frequency.
+
+For the multiplier, the target for an approximated version would have to be to fit in just one pipeline stage.
+In case of the adder, only the speed-up of an adder tree (e.g. Wallace tree adder \cite{sharma2016design}) would make sense, this would require an at least partially parallelized design reading the data for the pipeline from multi-port RAM.
+
+Therefore, future work could include a check if a dual-read-port BRAM is applicable and then possibly the approximation of an adder tree.
+
+Another thing to consider is whether to approximate globally or just parts of the calculations. While global approximation would yield the largest possible time/area savings the detrimental effect on image quality might be too strong. A compromise would be to not approximate but there, where approximation errors have the smallest impact on image quality. Of course this introduces a lot of additional complexity into development and it's questionable whether it's worth the effort.
+
+\subsection{Limitations and Solutions}
+
+Especially the second FPGA implementation seems to be promising, but has still some bugs or rather room for optimisation. Bugs and ideas for improvements are listed here:
+
+\subsubsection{Dark image bug}
+\label{sec:bug}
+
+When running the FPGA2 implementation on images with sizes above a certain size (more than 99x99 pixels but less than 256x256 pixels), the resulting images will be extremely dark. The original image is still recognisable but colours are shifted. Very bright spots turn completely black.
+
+After this bug has occurred once, all future results will show this bug, even if the image size is small. A system reboot will be necessary to get correct results again.
+Up to now, it has not been determined from where this problem originates from. It's not even clear if it's a software memory bug or a bug of the HDL implementation.
+
+This bug is the reason why no execution speed for the 256x256 pixel butterfly image is listed. The implementation calculates the resulting image very quickly (over 22 times faster than without acelleration), but the result will not be correct.
+
+\newpage
+\subsubsection{Feature Re-Transmission Skip}
+
+As already mentioned in section \ref{sec:fpgaimpl2}, the second HDL implementation should also support a functionality named \enquote{feature re-transmission skip}.
+The software could send a skip command instead of re-sending the whole feature. Thus, the loops for output and input channels can be interchanged in the software and each feature has to be sent only once.
+
+Due to the fact that there seem to be still synchronization problems, this functionality has not been used for measurements and is currently not used in the C code. If this would be fixed, this should allow a further speed-up.
+
+\subsubsection{Handling BRAM Limitations}
+
+Even if the dark image bug was fixed, the maximum image sizes would be limited by the BRAM size. A 300x300 pixel image occupies 71 \% of BRAM. However, bigger images could still be upscaled if a stitching algorithm was implemented. The algorithm would split the image into smaller padded sub-images before passing them to the convolution algorithm and recombines them afterwards.
+
+\clearpage
+%\nocite{*}
+
+\newpage
+\appendix
+\section{Appendix: Set5 Images}
+\label{Appendix:set5}
+
+\begin{figure}[!ht]
+     \centering
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \caption{Ground truth}
+         \includegraphics[width=\textwidth]{fig/examples/butterfly_GT}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \caption{Bicubic interpolation x3}
+         \includegraphics[width=\textwidth]{fig/examples/butterfly_bicubic_x3}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \caption{SRCNN x3}
+         \includegraphics[width=\textwidth]{fig/examples/butterfly_srcnn_x3}
+     \end{subfigure}\\
+     \vspace{5mm}
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{fig/examples/head_GT}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{fig/examples/head_bicubic_x3}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{fig/examples/head_srcnn_x3}
+     \end{subfigure}\\
+     \vspace{5mm}
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{fig/examples/woman_GT}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{fig/examples/woman_bicubic_x3}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{fig/examples/woman_srcnn_x3}
+     \end{subfigure}
+        \caption{Comparison of ground truth, bicubic interpolation and SRCNN of Set5 images \enquote{butterfly}, \enquote{head} and \enquote{woman}}
+        \label{fig:set5imagesI}
+\end{figure}
+
+\begin{figure}[!ht]
+     \centering
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \caption{Ground truth}
+         \includegraphics[width=\textwidth]{fig/examples/bird_GT}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \caption{Bicubic interpolation x3}
+         \includegraphics[width=\textwidth]{fig/examples/bird_bicubic_x3}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \caption{SRCNN x3}
+         \includegraphics[width=\textwidth]{fig/examples/bird_srcnn_x3}
+     \end{subfigure}\\
+     \vspace{5mm}
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{fig/examples/baby_GT}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{fig/examples/baby_bicubic_x3}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{fig/examples/baby_srcnn_x3}
+     \end{subfigure}
+        \caption{Comparison of ground truth, bicubic interpolation and SRCNN of Set5 images \enquote{bird} and \enquote{baby}.}
+        \label{fig:set5imagesII}
+\end{figure}
+\clearpage
+
+\section{Appendix: Quality Measures}
+\label{Appendix:tables}
+\begin{table}[H]
+\centering
+\caption{Results for the images from dataset5 for \textbf{bicubic} interpolation.}
+\label{tab:resultsbicubic}
+\begin{tabular}{lccccc} 
+\toprule
+Metric & baby.bmp & bird.bmp  & butterfly.bmp & head.bmp  & woman.bmp  \\ 
+\hline
+PSNR [dB]   & 33.30 & 31.15 & 23.15     & 32.81 & 27.37  \\
+SSIM    & 0.907 & 0.919 & 0.823     & 0.824 & 0.884  \\
+IFC     & 3.65  & 3.85  & 3.42      & 3.23  & 3.33   \\
+NQM [dB]    & 41.58 & 24.77 & 19.57     & 30.32 & 23.38  \\
+MSSSIM  & 0.981 & 0.983 & 0.969     & 0.969 & 0.975  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\caption{Results for the images from dataset5 for our \textbf{SRCNN} implementation.}
+\label{tab:resultssrcnn}
+\begin{tabular}{lccccc} 
+\toprule
+Metric    & baby.bmp & bird.bmp & butterfly.bmp & head.bmp & woman.bmp  \\ 
+\hline
+PSNR [dB]     & 34.72    & 33.89   & 27.12         & 33.78    & 30.07      \\
+SSIM      & 0.927    & 0.949    & 0.914         & 0.851    & 0.925      \\
+IFC       & 4.21     & 4.79     & 5.00          & 3.73     & 4.32       \\
+NQM [dB]      & 41.45    & 31.24    & 26.67         & 35.84    & 30.02      \\
+MSSSIM    & 0.988    & 0.992    & 0.989         & 0.977    & 0.988      \\
+\bottomrule
+\end{tabular}
+\end{table}
+\newpage
+
+\section*{Team}
+
+A flat hierarchy was used. Neural networks were new to all team members, so everyone was participating in research, coding, etc. Nonetheless various areas were appointed to each member. They ultimately take main responsibility for the respective areas. 
+
+\begin{figure}[H]
+	\centering
+	\includestandalone[width=0.6\textwidth]{fig/hierarchy}
+	\caption{Assigned areas for each team member. Team members did not work solely on their assigned areas but had the main responsibility for them.}
+	\label{fig.hierarchy}
+\end{figure}
+\newpage
+
+\printbibliography 
+\end{document}

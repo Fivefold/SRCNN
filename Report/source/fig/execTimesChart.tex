@@ -1,0 +1,52 @@
+% Bar charts
+% Adapted from:
+% https://www.packtpub.com/hardware-and-creative/latex-cookbook
+\documentclass[tikz, border=0pt]{standalone}
+\usepackage{pgfplots}
+\begin{document}
+\pgfplotsset{compat=1.17}
+\pgfplotsset{plot coordinates/math parser=false}
+
+\definecolor{mycolor1}{rgb}{0.34667,0.53600,0.69067}%
+\definecolor{mycolor2}{rgb}{0.91529,0.28157,0.28784}%
+
+\begin{tikzpicture}
+  \begin{axis}[%title  = Execution times in seconds,
+    xbar,
+    y axis line style = { opacity = 0 },
+    axis x line       = none,
+    tickwidth         = 0pt,
+    ytick             = data,
+    enlarge y limits  = 0.1,
+    enlarge x limits  = 0.02,
+    symbolic y coords = {   Cython / ZedBoard [FPGA2], 
+                            Cython / ZedBoard [FPGA1], 
+                            Cython / ZedBoard [CPU], 
+                            Cython / Desktop [CPU], 
+                            NumPy / Desktop, 
+                            PyTorch / Desktop},
+    nodes near coords,
+    legend style={at={(1.3,1)}, anchor=north east, legend cell align=center, draw=white!15!black, reverse legend}
+  ]
+  \addplot [color=mycolor1, fill=mycolor1] coordinates {    
+                            (2.43,PyTorch / Desktop)         
+                            (559,NumPy / Desktop)
+                            (17,Cython / Desktop [CPU])  
+                            (195,Cython / ZedBoard [CPU])
+                            (226,Cython / ZedBoard [FPGA1])
+                            (8.67,Cython / ZedBoard [FPGA2])
+                            };
+  \addlegendentry{99x99}
+                            
+  \addplot [color=mycolor2, fill=mycolor2] coordinates {    
+                            (2.64,PyTorch / Desktop)
+                            (924,NumPy / Desktop)
+                            (29,Cython / Desktop [CPU])
+                            (631,Cython / ZedBoard [CPU])
+                            (1413,Cython / ZedBoard [FPGA1])
+                            (,Cython / ZedBoard [FPGA2])
+                            };
+  \addlegendentry{265x265}
+  \end{axis}
+\end{tikzpicture}
+\end{document}
