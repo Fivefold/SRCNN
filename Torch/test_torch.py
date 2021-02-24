@@ -23,7 +23,7 @@ if __name__ == '__main__':
     cudnn.benchmark = True
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    model = SRCNN().to(device)  # Erschaffe Instanz vom NN und schicke sie auf CUDA
+    model = SRCNN().to(device)  # Create an instance of the NN and send to CUDA
 
     # --- load weights & biases ---
     state_dict = model.state_dict()

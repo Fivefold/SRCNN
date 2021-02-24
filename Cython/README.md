@@ -9,7 +9,6 @@ The purely CPU-run version can run on any Linux-based system but is **made prima
 * Python (tested on Python 3.8)
   * Numpy (tested on 1.19.5)
   * Pillow (tested on 8.1.0)
-  * wurlitzer (tested on 2.0.1)
   * SSIM-PIL (tested on 1.0.12)
 * A C compiler
 
@@ -19,7 +18,6 @@ The purely CPU-run version can run on any Linux-based system but is **made prima
   * (Optional) pip (tested on 21.0, installed via [get-pip.py](https://github.com/pypa/get-pip))
   * Numpy (tested on 1.19.5)
   * Pillow (tested on 8.1.0)
-  * wurlitzer (tested on 2.0.1)
   * SSIM-PIL (tested on 1.0.12)
 * python3.8-distutils (for compiling numpy)
 * python3.8-dev (for compiling numpy)
@@ -38,26 +36,23 @@ The purely CPU-run version can run on any Linux-based system but is **made prima
 
 4. execute the script with 
    
-   `python3.8 test_cpython.py --image-file "[Path to image file]" --mode [ cpu | fpga1 | fpga2 ]`
+   `python3.8 test_cython.py --image-file "[Path to image file]" --mode [ cpu | fpga1 | fpga2 ]`
    
-   e.g. `python3.8 test_cpython.py --image-file "../Images/butterfly.bmp" --mode cpu`
+   e.g. `python3.8 test_cython.py --image-file "../Images/butterfly.bmp" --mode cpu`
 
-   The `image-file` argument as well as the `mode` argument are required.  
-   With the `mode` argument, the Python script chooses between three different C code implementations.
+   The `--image-file` argument as well as the `--mode` argument are required.  
+   With the `--mode` argument, the Python script chooses between three different C code implementations:
    1.  `cpu`: The underlying C code is single-threaded and uses no hardware acceleration on the FPGA
    2.  `fpga1`: Uses the first HDL implementation, streams patches to the FPGA
-   3.  `fpga2`: Uses the 2nd HDL implementation, streams features to the FPGA
+   3.  `fpga2`: Uses the second HDL implementation, streams features to the FPGA
 
    Both implementations with HDL designs on the FPGA fill the streams to the FPGA concurrently with child processes.
-   Although the use of a custom HDL design, `fpga1` is unfortunately much slower than the `cpu` implementation.
+   Although using a custom HDL design, `fpga1` is unfortunately much slower than the `cpu` implementation.
 
-   The speed ranking of all three implementations is as follows:  
-   > `fpga1` > `cpu` > `fpga2`
+   The speed ranking of all three implementations is `fpga2` > `cpu` > `fpga1` 
+   with the right-most implementation being the slowest.
 
-   with the left-most implementation being the slowest.
-
-   Keep in mind, that an implementation which relies on FPGA support will need the right bitstream of the corresponding HDL design flashed onto the FPGA board.  
-   Otherwise, the C code will not work as expected and never terminate by itself.
+   Keep in mind, that an implementation which relies on FPGA support will need the right bitstream of the corresponding HDL design flashed onto the FPGA board. Otherwise, the C code will not work as expected and never terminate by itself.
    Both bitstreams are made available on this repository, they can be found in the subfolders of the `../HDL` directory.
 
    Regarding the `fpga2` implementation, there are several limitations.  
@@ -66,12 +61,9 @@ The purely CPU-run version can run on any Linux-based system but is **made prima
    - image_height = 300
    - kernelsize = 9
 
-   These values could still be increased a bit until reaching the limit of memory (BRAM) available on the FPGA.  
-   When doing so, the HDL design has to be sythesized again.  
-   The READMEs in the `../HDL` directory will guide you through the HDL project setup and building process.
+   These values could still be increased a bit until reaching the limit of memory (BRAM) available on the FPGA. When doing so, the HDL design has to be sythesized again.  
+   The [READMEs](../HDL/README.md) in the `../HDL` directory will guide through the HDL project setup and building process.
 
-   Currently, there exists also a bug in the `fpga2` implementation, that images above certain sizes will not deliver correct results. If this bug occurs, a system reboot will be necessary to even get correct results for smaller images again.  The image `butterfly_99` should still work as expected.
-   Up to now, it has not been resolved from where this problem originates from, being it a software memory bug or a bug of the HDL implementation.
 
 5. In the location of the original image should be three additional images. Example with `butterfly.bmp`:
    1. `butterfly_GT.bmp`: original image (Ground truth)
@@ -81,6 +73,14 @@ The purely CPU-run version can run on any Linux-based system but is **made prima
 6. (Optional) To easily access the file remotely you can use the scp command again like in step 3.
    
    `scp root@[local IP address]:"/root/SRCNN/Images/[image name]" "[Destination path on host system]" `
+
+## Known issues
+
+Currently, there exists a bug in the `fpga2` implementation that images above certain sizes will not deliver correct results. If this bug occurs, a system reboot will be necessary to even get correct results for smaller images again.  The image `butterfly_99.bmp` is the largest tested image that works as expected. Larger images could still work. 
+
+The source of the bug is still unknown. 
+
+---
 
 ## Installation instructions for ZedBoard
 

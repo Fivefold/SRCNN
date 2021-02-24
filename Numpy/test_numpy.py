@@ -69,7 +69,7 @@ if __name__ == '__main__':
     # transpose: https://arrayjson.com/numpy-transpose/#NumPy_transpose_3d_array
     output_np = np.array(
         [cc3, ycbcr[..., 1], ycbcr[..., 2]]).transpose([1, 2, 0])
-    # output wird zu rgb umgewandelt und Werte außerhalb 0-255 werden abgeschnitten.
+    # convert the output back to RGB and scale back to pixel values
     output_np = np.clip(ycbcr2rgb(output_np), 0.0, 255.0).astype(np.uint8)
     output = pil_image.fromarray(output_np)
     output.save(args.image_file.replace(

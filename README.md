@@ -8,7 +8,7 @@
 
 ### SRCNN implementations for Python/Torch, Numpy and Avnet's ZedBoard 
 
-The aim of single image super-resolution (SR) is to recover a high-resolution (HR) image from a single low-resolution (LR) image.
+The aim of single image super-resolution is to recover a high-resolution image from a single low-resolution image.
 
 This repository includes three implementations of the *Super Resolution Convolutional Neural Network (SRCNN) by Dong, Chao, et al. "Image super-resolution using deep convolutional networks."* (https://arxiv.org/abs/1501.00092v3)
 
@@ -20,7 +20,7 @@ This repository includes three implementations of the *Super Resolution Convolut
   * Numpy: For upscaling
   * Cython: For upscaling (able to be run on Avnet's [ZedBoard](http://zedboard.org/product/zedboard))
     * Purely CPU-run *or*
-    * Running the 2D convolutions on the ZedBoards FPGA
+    * Running the 2D convolutions on the ZedBoard's FPGA
 
 ## Usage
 
@@ -42,6 +42,10 @@ Average of each metric for the Set5 dataset.
 | MSSSIM |   0.975 | 0.980 |   0.984 | 0.985 | 0.984 | **0.987** |    **0.987** |    **0.987** |
 
 ## Examples
+* **Ground truth** is the original (ideal) image for comparison with the upscaled versions.  
+* **Bicubic** is the ground truth downscaled by a factor of 3 and upscaled by a factor of 3 using simple bicubic interpolation.  
+* **SRCNN** is the same as Bicubic but using the trained convolutional neural network.
+
 |           Ground Truth           |               Bicubic x3               |               SRCNN x3               |
 | :------------------------------: | :------------------------------------: | :----------------------------------: |
 | ![](./Examples/butterfly_GT.png) | ![](Examples/butterfly_bicubic_x3.png) | ![](Examples/butterfly_srcnn_x3.png) |
