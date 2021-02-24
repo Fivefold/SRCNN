@@ -38,9 +38,26 @@ The purely CPU-run version can run on any Linux-based system but is **made prima
 
 4. execute the script with 
    
-   `python3.8 test_cpython.py --image-file "[Path to image file]"`
+   `python3.8 test_cpython.py --image-file "[Path to image file]" --mode [ cpu | fpga1 | fpga2 ]`
    
-   e.g. `python3.8 test_cpython.py --image-file "../Images/butterfly.bmp"`
+   e.g. `python3.8 test_cpython.py --image-file "../Images/butterfly.bmp" --mode cpu`
+
+   The `image-file` argument as well as the `mode` argument are required.  
+   With the `mode` argument, the Python script chooses between three different C code implementations.
+   1.  `cpu`: The underlying C code is single-threaded and uses no hardware acceleration on the FPGA
+   2.  `fpga1`: Uses the first HDL implementation, streams patches to the FPGA
+   3.  `fpga2`: Uses the 2nd HDL implementation, streams features to the FPGA
+
+   Both implementations with HDL designs on the FPGA fill the streams to the FPGA concurrently with child processes.
+   Although the use of a custom HDL design, `fpga1` is unfortunately much slower than the `cpu` implementation.
+
+   The speed ranking of all three implementations is as follows:  
+   > `fpga1` > `cpu` > `fpga2`
+
+   with the left-most implementation being the slowest.
+
+   Keep in mind, that an implementation which relies on FPGA support will need the right bitstream of the corresponding HDL design flashed onto the FPGA board.  
+   Otherwise, the C code will not work as expected and never terminate by itself.
 
 5. In the location of the original image should be three additional images. Example with `butterfly.bmp`:
    1. `butterfly_GT.bmp`: original image (Ground truth)
